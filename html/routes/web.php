@@ -2,7 +2,7 @@
 // routes/web.php
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\TransferController; 
 
 // -----------------------------------------------------
 // RUTAS PÚBLICAS
@@ -18,20 +18,27 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 
 // REGISTRO DE USUARIOS PARTICULARES (VIAJEROS)
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register'); // Muestra el formulario
-Route::post('/register', [AuthController::class, 'register']); // Procesa el registro
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']); 
+
+// FLUJO DE RESERVA DE TRASLADOS (Acceso público hasta el formulario, luego se usa Auth en el Controller)
+Route::prefix('transfer')->group(function () {
+    Route::get('/select-type', [TransferController::class, 'showTypeSelection'])->name('transfer.select-type');
+    Route::post('/select-type', [TransferController::class, 'postTypeSelection'])->name('transfer.select-type.post');
+    
+    Route::get('/reserve/{type}', [TransferController::class, 'showReservationForm'])->name('transfer.reserve.form');
+    
+    Route::post('/confirm', [TransferController::class, 'confirmReservation'])->name('transfer.reserve.confirm')->middleware('auth:web,corporate');
+}); // <-- CIERRE CORRECTO del grupo 'transfer'
 
 // -----------------------------------------------------
-// RUTAS PROTEGIDAS
+// RUTAS PROTEGIDAS (Requieren Viajero, Corporativo o Admin logueado)
 // -----------------------------------------------------
 
-// Logout (Usamos el guard que esté activo)
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-
-// Paneles
-// Nota: Utilizamos middleware que chequea si el usuario está autenticado en CUALQUIERA de los guards.
 Route::middleware(['auth:admin,corporate,web'])->group(function () {
+
+    // Logout (Usamos el guard que esté activo)
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Redirige al panel correcto basado en el guard activo (Controlador)
     Route::get('/dashboard', [AuthController::class, 'redirectDashboard'])->name('dashboard');

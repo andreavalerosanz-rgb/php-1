@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 use App\Models\Viajero; 
 use App\Models\Hotel; 
 use App\Models\Admin; 
+use Illuminate\Database\QueryException; 
 
 class AuthController extends Controller
 {
@@ -21,11 +22,13 @@ class AuthController extends Controller
         return view('login');
     }
     
-    public function showRegister()
-    {
-        return view('register');
-    }
-
+public function showRegister()
+{
+    // Obtener todas las zonas para el selector de hoteles
+    $zonas = \DB::table('transfer_zonas')->get();
+    
+    return view('register', compact('zonas'));
+}
     // ------------------------------------------------------------------
     // PROCESOS DE AUTENTICACIÓN (LOGIN)
     // ------------------------------------------------------------------
@@ -68,36 +71,45 @@ class AuthController extends Controller
     // PROCESOS DE AUTENTICACIÓN (REGISTRO MULTI-ROL)
     // ------------------------------------------------------------------
     
-    public function register(Request $request)
-    {
-        // 1. Validar los campos. Usamos reglas 'nullable' para campos que no todos los roles necesitan
-        $request->validate([
-            'role' => 'required|in:viajero,hotel',
-            'nombre' => 'required|string|max:100', 
-            'email' => 'required|string|email|max:100',
-            'password' => 'required|string|min:6|confirmed',
-            
-            // Campos de dirección (obligatorios para Viajero, por lo que deben ser 'required_if')
-            'apellido1' => 'required_if:role,viajero|nullable|string|max:100', 
-            'apellido2' => 'required_if:role,viajero|nullable|string|max:100',
-            'direccion' => 'required_if:role,viajero|nullable|string|max:100',
-            'codigoPostal' => 'required_if:role,viajero|nullable|string|max:100',
-            'ciudad' => 'required_if:role,viajero|nullable|string|max:100',
-            'pais' => 'required_if:role,viajero|nullable|string|max:100',
-        ]);
-        
-        $email = $request->email;
-        $password = Hash::make($request->password);
-        $role = $request->role;
-        $guard = 'web';
+public function register(Request $request)
+{
+    $baseRules = [
+        'role' => 'required|in:viajero,hotel',
+        'nombre' => 'required|string|max:100', 
+        'email' => 'required|string|email|max:100',
+        'password' => 'required|string|min:6|confirmed',
+    ];
 
+    if ($request->role === 'viajero') {
+        $viajeroRules = [
+            'apellido1' => 'required|string|max:100', 
+            'apellido2' => 'required|string|max:100',
+            'direccion' => 'required|string|max:100',
+            'codigoPostal' => 'required|string|max:100',
+            'ciudad' => 'required|string|max:100',
+            'pais' => 'required|string|max:100',
+        ];
+        $request->validate(array_merge($baseRules, $viajeroRules));
+    } else {
+        $hotelRules = [
+            'comision' => 'required|integer|min:0|max:100',
+            'id_zona' => 'required|exists:transfer_zonas,id_zona',
+        ];
+        $request->validate(array_merge($baseRules, $hotelRules));
+    }
+    
+    $email = $request->email;
+    $password = Hash::make($request->password);
+    $role = $request->role;
+
+    try {
         if ($role === 'viajero') {
-            // Comprobación de unicidad de email manual para el modelo Viajero
+            // Comprobación de unicidad de email para Viajero
             if (Viajero::where('email_viajero', $email)->exists()) {
-                 throw ValidationException::withMessages(['email' => 'Este email ya está registrado como Viajero.']);
+                throw ValidationException::withMessages(['email' => 'Este email ya está registrado como Viajero.']);
             }
             
-            // Crear el Viajero con todos los campos obligatorios del formulario
+            // Crear el Viajero
             $user = Viajero::create([
                 'nombre' => $request->nombre,
                 'email_viajero' => $email,
@@ -109,13 +121,13 @@ class AuthController extends Controller
                 'ciudad' => $request->ciudad, 
                 'pais' => $request->pais, 
             ]);
-
+            
             $guard = 'web'; 
             
         } elseif ($role === 'hotel') {
-            // Comprobación de unicidad de email manual para el modelo Hotel
+            // Comprobación de unicidad de email para Hotel
             if (Hotel::where('email_hotel', $email)->exists()) {
-                 throw ValidationException::withMessages(['email' => 'Este email ya está registrado como Hotel.']);
+                throw ValidationException::withMessages(['email' => 'Este email ya está registrado como Hotel.']);
             }
             
             // Crear el Hotel
@@ -123,8 +135,8 @@ class AuthController extends Controller
                 'nombre' => $request->nombre, 
                 'email_hotel' => $email,
                 'password' => $password,
-                'Comision' => 0,          
-                'id_zona' => 1,           
+                'Comision' => $request->comision,          
+                'id_zona' => $request->id_zona,           
             ]);
 
             $guard = 'corporate'; 
@@ -132,9 +144,31 @@ class AuthController extends Controller
         
         // Autenticar y redirigir
         Auth::guard($guard)->login($user);
-
         return $this->redirectDashboard(); 
+
+    } catch (QueryException $e) {
+        \Log::error('Error en registro: ' . $e->getMessage());
+        
+        $errorMessage = 'Error al registrar usuario. ';
+        
+        if ($e->getCode() == 23000) {
+            $errorMessage .= 'Posible problema con las restricciones de base de datos.';
+        } else {
+            $errorMessage .= 'Error interno del sistema.';
+        }
+        
+        throw ValidationException::withMessages([
+            'registro_error' => $errorMessage . ' Detalles: ' . $e->getMessage()
+        ]);
+    } catch (ValidationException $e) {
+        throw $e;
+    } catch (\Exception $e) {
+        \Log::error('Error inesperado en registro: ' . $e->getMessage());
+        throw ValidationException::withMessages([
+            'registro_error' => 'Error inesperado: ' . $e->getMessage()
+        ]);
     }
+}
 
     // ------------------------------------------------------------------
     // LOGOUT Y REDIRECCIÓN

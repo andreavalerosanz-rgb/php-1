@@ -8,6 +8,28 @@
                 <h4>Registro de Nuevo Usuario</h4>
             </div>
             <div class="card-body">
+                
+                {{-- Mostrar errores generales --}}
+                @if($errors->has('registro_error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error de registro:</strong> {{ $errors->first('registro_error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+
+                {{-- Mostrar errores de validación --}}
+                @if($errors->any() && !$errors->has('registro_error'))
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>Por favor corrige los siguientes errores:</strong>
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
                     
@@ -36,7 +58,7 @@
                         @enderror
                     </div>
 
-                    {{-- Contenedor de Campos de Viajero (se oculta para Hotel) --}}
+                    {{-- Contenedor de Campos de Viajero --}}
                     <div id="viajero-fields">
                         
                         <h5 class="mt-4 mb-3 text-secondary">Apellidos y Dirección del Viajero</h5>
@@ -45,14 +67,14 @@
                             {{-- Apellidos --}}
                             <div class="col-md-6 mb-3">
                                 <label for="apellido1" class="form-label">Primer Apellido</label>
-                                <input type="text" class="form-control @error('apellido1') is-invalid @enderror" id="apellido1" name="apellido1" value="{{ old('apellido1') }}" required>
+                                <input type="text" class="form-control @error('apellido1') is-invalid @enderror" id="apellido1" name="apellido1" value="{{ old('apellido1') }}">
                                 @error('apellido1')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="apellido2" class="form-label">Segundo Apellido</label>
-                                <input type="text" class="form-control @error('apellido2') is-invalid @enderror" id="apellido2" name="apellido2" value="{{ old('apellido2') }}" required>
+                                <input type="text" class="form-control @error('apellido2') is-invalid @enderror" id="apellido2" name="apellido2" value="{{ old('apellido2') }}">
                                 @error('apellido2')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -63,28 +85,28 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="direccion" class="form-label">Dirección</label>
-                                <input type="text" class="form-control @error('direccion') is-invalid @enderror" id="direccion" name="direccion" value="{{ old('direccion') }}" required>
+                                <input type="text" class="form-control @error('direccion') is-invalid @enderror" id="direccion" name="direccion" value="{{ old('direccion') }}">
                                 @error('direccion')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="codigoPostal" class="form-label">Código Postal</label>
-                                <input type="text" class="form-control @error('codigoPostal') is-invalid @enderror" id="codigoPostal" name="codigoPostal" value="{{ old('codigoPostal') }}" required>
+                                <input type="text" class="form-control @error('codigoPostal') is-invalid @enderror" id="codigoPostal" name="codigoPostal" value="{{ old('codigoPostal') }}">
                                 @error('codigoPostal')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="ciudad" class="form-label">Ciudad</label>
-                                <input type="text" class="form-control @error('ciudad') is-invalid @enderror" id="ciudad" name="ciudad" value="{{ old('ciudad') }}" required>
+                                <input type="text" class="form-control @error('ciudad') is-invalid @enderror" id="ciudad" name="ciudad" value="{{ old('ciudad') }}">
                                 @error('ciudad')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="pais" class="form-label">País</label>
-                                <input type="text" class="form-control @error('pais') is-invalid @enderror" id="pais" name="pais" value="{{ old('pais') }}" required>
+                                <input type="text" class="form-control @error('pais') is-invalid @enderror" id="pais" name="pais" value="{{ old('pais') }}">
                                 @error('pais')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -92,6 +114,35 @@
                         </div>
                     </div> {{-- Fin del Contenedor de Viajero --}}
 
+                    {{-- Contenedor de Campos de Hotel --}}
+                    <div id="hotel-fields" style="display: none;">
+                        <h5 class="mt-4 mb-3 text-secondary">Información del Hotel</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="comision" class="form-label">Comisión (%)</label>
+                                <input type="number" class="form-control @error('comision') is-invalid @enderror" id="comision" name="comision" value="{{ old('comision', 0) }}" min="0" max="100" step="1">
+                                @error('comision')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Porcentaje de comisión que aplicará el hotel (0-100%)</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_zona" class="form-label">Zona</label>
+                                <select class="form-control @error('id_zona') is-invalid @enderror" id="id_zona" name="id_zona">
+                                    <option value="">Selecciona una zona</option>
+                                    @foreach($zonas ?? [] as $zona)
+                                        <option value="{{ $zona->id_zona }}" {{ old('id_zona') == $zona->id_zona ? 'selected' : '' }}>
+                                            {{ $zona->descripcion }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('id_zona')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div> {{-- Fin del Contenedor de Hotel --}}
 
                     <h5 class="mt-3 mb-3 text-secondary">Datos de Acceso</h5>
                     
@@ -132,43 +183,62 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const roleRadios = document.querySelectorAll('input[name="role"]');
-        const viajeroFields = document.getElementById('viajero-fields');
-        const nombreInput = document.getElementById('nombre');
+document.addEventListener('DOMContentLoaded', function () {
+    const roleRadios = document.querySelectorAll('input[name="role"]');
+    const viajeroFields = document.getElementById('viajero-fields');
+    const hotelFields = document.getElementById('hotel-fields');
+    const nombreInput = document.getElementById('nombre');
+    
+    // Obtener todos los campos de viajero
+    const viajeroInputs = viajeroFields.querySelectorAll('input');
+    // Obtener todos los campos de hotel
+    const hotelInputs = hotelFields.querySelectorAll('input, select');
+
+    function toggleFields() {
+        const selectedRole = document.querySelector('input[name="role"]:checked').value;
         
-        // Obtener todos los campos que son requeridos para Viajero
-        const requiredViajeroInputs = viajeroFields.querySelectorAll('[required]');
+        if (selectedRole === 'hotel') {
+            viajeroFields.style.display = 'none';
+            hotelFields.style.display = 'block';
+            nombreInput.placeholder = 'Ej: Hotel Gran Playa';
 
-        function toggleFields() {
-            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+            // Deshabilitar campos de viajero
+            viajeroInputs.forEach(input => {
+                input.disabled = true;
+                input.removeAttribute('required');
+            });
+
+            // Habilitar campos de hotel
+            hotelInputs.forEach(input => {
+                input.disabled = false;
+                input.setAttribute('required', 'required');
+            });
             
-            if (selectedRole === 'hotel') {
-                viajeroFields.style.display = 'none';
-                nombreInput.placeholder = 'Ej: Hotel Gran Playa';
+        } else {
+            viajeroFields.style.display = 'block';
+            hotelFields.style.display = 'none';
+            nombreInput.placeholder = 'Ej: Juan Antonio';
 
-                requiredViajeroInputs.forEach(input => {
-                    input.removeAttribute('required');
-                });
-                
-            } else {
-                viajeroFields.style.display = 'block';
-                nombreInput.placeholder = 'Ej: Juan Antonio';
+            // Habilitar campos de viajero
+            viajeroInputs.forEach(input => {
+                input.disabled = false;
+                input.setAttribute('required', 'required');
+            });
 
-                requiredViajeroInputs.forEach(input => {
-                    if (!input.hasAttribute('required')) {
-                        input.setAttribute('required', 'required');
-                    }
-                });
-            }
+            // Deshabilitar campos de hotel
+            hotelInputs.forEach(input => {
+                input.disabled = true;
+                input.removeAttribute('required');
+            });
         }
+    }
 
-        roleRadios.forEach(radio => {
-            radio.addEventListener('change', toggleFields);
-        });
-
-        // Ejecutar al cargar la página para establecer el estado inicial
-        toggleFields();
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', toggleFields);
     });
+
+    // Ejecutar al cargar la página para establecer el estado inicial
+    toggleFields();
+});
 </script>
 @endsection

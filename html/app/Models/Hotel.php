@@ -4,32 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Hotel extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     protected $table = 'transfer_hoteles';
     protected $primaryKey = 'id_hotel';
-    
-    public $timestamps = false; // Desactiva created_at/updated_at
-    
-    public function getAuthIdentifierName()
-    {
-        return 'email_hotel';
-    }
+    public $timestamps = false;
 
     protected $fillable = [
-        'nombre',          
-        'Comision',       
+        'nombre',
+        'id_zona',
         'email_hotel',
+        'Comision', 
         'password',
-        'id_zona',         
     ];
-
+    
     protected $hidden = [
         'password',
     ];
-
-
 }
