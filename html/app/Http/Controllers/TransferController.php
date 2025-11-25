@@ -136,7 +136,7 @@ class TransferController extends Controller
         }
         
         // Aseguramos que idViajero sea NULL o INT
-        $idViajero = (is_numeric($idViajero)) ? (int)$idViajero : null;
+        $idViajero = (is_numeric($idViajero)) ? (int)$idViajero : 0;
         
         
         // 3. LÓGICA DE PRECIOS Y VEHÍCULOS DESDE transfer_precios
@@ -165,7 +165,8 @@ class TransferController extends Controller
             'localizador' => strtoupper(uniqid('TR-')),
             'id_tipo_reserva' => $tipoReservaId,
             'email_cliente' => $request->email_contacto,
-            'id_viajero' => $idViajero,
+            'id_owner' => $idViajero,
+            'tipo_owner' => 'user',  // porque es un viajero
             'fecha_reserva' => $now,
             'fecha_modificacion' => $now,
             'id_hotel' => $hotelId,
@@ -184,6 +185,9 @@ class TransferController extends Controller
             'origen_vuelo_entrada' => null,
             'hora_vuelo_salida' => null,
             'fecha_vuelo_salida' => null,
+            'numero_vuelo_salida' => null,
+            'origen_vuelo_salida' => null,
+            'hora_recogida_hotel' => null,
         ];
         
         // 5. Llenar campos específicos según el tipo de reserva
