@@ -38,6 +38,7 @@
                     <a href="{{ route('transfer.select-type') }}" class="btn btn-success">Reservar Nuevo Traslado</a>
                     <a href="#" class="btn btn-secondary">Ver Mis Reservas</a>
                     <a href="#" class="btn btn-outline-secondary">Editar Perfil</a>
+                    <a href="{{ route('calendar.index') }}" class="btn btn-primary">Calendario</a>
                 </div>
             </div>
         </div>

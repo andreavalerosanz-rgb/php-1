@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TransferController; 
+use App\Http\Controllers\CalendarController;
 
 // -----------------------------------------------------
 // RUTAS PÚBLICAS
@@ -16,6 +17,10 @@ Route::get('/', function () {
 // Login
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+
+// Calendario
+Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
+Route::get('/calendario/events', [CalendarController::class, 'events'])->name('calendar.events');
 
 // REGISTRO DE USUARIOS PARTICULARES (VIAJEROS)
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
