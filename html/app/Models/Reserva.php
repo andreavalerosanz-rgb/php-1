@@ -18,23 +18,51 @@ class Reserva extends Model
     // Campos que se pueden asignar masivamente (todos los campos que se llenarán)
     protected $fillable = [
         'localizador',
-        'id_hotel',             
         'id_tipo_reserva',
         'email_cliente',
-        'id_viajero',          
-        'fecha_reserva',        
-        'fecha_modificacion',   
-        'id_destino',           
+        'id_owner',
+        'tipo_owner',
+        'fecha_reserva',
+        'fecha_modificacion',
+        'id_hotel',
+        'id_destino',
+        'num_viajeros',
+        'id_vehiculo',
+        'precio_total',
+        'comision_ganada',
+        'comision_liquidada',
         'fecha_entrada',
         'hora_entrada',
         'numero_vuelo_entrada',
         'origen_vuelo_entrada',
         'hora_vuelo_salida',
         'fecha_vuelo_salida',
-        'num_viajeros',
-        'id_vehiculo',          
-        'precio_total',         
-        'comision_ganada',      
-        'comision_liquidada',   
+        'numero_vuelo_salida',
+        'origen_vuelo_salida',
+        'hora_recogida_hotel',  
     ];
+
+    
+
+     /*
+    |--------------------------------------------------------------------------
+    | Relaciones
+    |--------------------------------------------------------------------------
+    */
+
+    public function hotel()
+    {
+        return $this->belongsTo(\App\Models\Hotel::class, 'id_hotel', 'id_hotel');
+    }
+
+    public function zona()
+    {
+        return $this->belongsTo(\App\Models\Zona::class, 'id_destino', 'id_zona');
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(\App\Models\Viajero::class, 'id_owner', 'id_viajero');
+    }
+
 }
