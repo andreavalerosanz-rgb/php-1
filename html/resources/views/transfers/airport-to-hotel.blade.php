@@ -11,10 +11,8 @@
                 <form method="POST" action="{{ route('transfer.reserve.confirm') }}">
                     @csrf
                     <input type="hidden" name="reservation_type" value="airport_to_hotel">
-                    
-                    {{-- 🚨 CRÍTICO: ID VIAJERO --}}
-                    <input type="hidden" name="id_viajero" value="{{ Auth::user()->id_viajero ?? Auth::user()->id ?? 'guest_' . time() }}">
 
+                    {{-- Bloque de errores globales (Tarifas, etc) --}}
                     @error('hotel')
                         <div class="alert alert-danger text-center" role="alert">
                             <h5 class="text-danger">¡ERROR EN LA RESERVA!</h5>
@@ -22,7 +20,6 @@
                         </div>
                     @enderror
 
-                    {{-- RESTRICCIÓN 48 HORAS --}}
                     <div class="alert alert-warning small">
                         <i class="fas fa-clock"></i> **Nota:** La reserva debe realizarse con al menos **48 horas de antelación**. La fecha mínima es: **{{ Carbon\Carbon::parse($minDate)->format('d/m/Y') }}**.
                     </div>
@@ -74,20 +71,26 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="id_hotel_destino" class="form-label">Selección de Hotel Destino</label>
-                            <select class="form-control @error('id_hotel_destino') is-invalid @enderror" 
-                                    id="id_hotel_destino" name="id_hotel_destino" required>
-                                <option value="">Seleccione su Hotel Destino</option>
-                                @foreach($hotels as $hotel)
-                                    {{-- 🚨 CONSISTENCIA: Usar id_hotel en todos los formularios --}}
-                                    <option value="{{ $hotel->id_hotel }}" 
-                                            @if(old('id_hotel_destino') == $hotel->id_hotel) selected @endif>
-                                        {{ $hotel->nombre }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('id_hotel_destino')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            
+                            {{-- LOGICA CORPORATIVA: Si es hotel, campo fijo. Si no, select. --}}
+                            @if(Auth::guard('corporate')->check())
+                                {{-- Input visible solo lectura --}}
+                                <input type="text" class="form-control bg-light" 
+                                       value="{{ $hotels->first()->nombre }}" readonly>
+                                {{-- Input oculto con el ID --}}
+                                <input type="hidden" name="id_hotel_destino" value="{{ $hotels->first()->id_hotel }}">
+                            @else
+                                <select class="form-control @error('id_hotel_destino') is-invalid @enderror" 
+                                        id="id_hotel_destino" name="id_hotel_destino">
+                                    <option value="">Seleccione su Hotel Destino</option>
+                                    @foreach($hotels as $hotel)
+                                        <option value="{{ $hotel->id_hotel }}" @if(old('id_hotel_destino') == $hotel->id_hotel) selected @endif>{{ $hotel->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('id_hotel_destino')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            @endif
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="pax" class="form-label">Número de Pasajeros</label>
@@ -101,11 +104,27 @@
 
                     {{-- 3. Datos Personales --}}
                     <h5 class="mt-4 mb-3 text-primary"><i class="fas fa-user"></i> Datos del Contacto</h5>
+                    
+                    {{-- Lógica robusta para obtener datos según el Guard activo --}}
                     @php
-                        $user = Auth::user();
-                        $nombre = $user->nombre ?? old('nombre_contacto');
-                        $email = Auth::guard('web')->check() ? ($user->email_viajero ?? $user->email) : (Auth::guard('corporate')->check() ? $user->email_hotel : old('email_contacto'));
+                        $nombre = old('nombre_contacto');
+                        $email = old('email_contacto');
+
+                        if (Auth::guard('web')->check()) {
+                            $u = Auth::guard('web')->user();
+                            $nombre = $u->nombre . ' ' . ($u->apellido1 ?? '');
+                            $email = $u->email_viajero;
+                        } elseif (Auth::guard('corporate')->check()) {
+                            $u = Auth::guard('corporate')->user();
+                            $nombre = $u->nombre; // Nombre del hotel como contacto
+                            $email = $u->email_hotel;
+                        } elseif (Auth::guard('admin')->check()) {
+                            $u = Auth::guard('admin')->user();
+                            $nombre = $u->nombre;
+                            $email = $u->email_admin;
+                        }
                     @endphp
+
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="nombre_contacto" class="form-label">Nombre</label>
@@ -127,20 +146,9 @@
                         </div>
                     </div>
 
-                    {{-- DEBUG: Mostrar errores --}}
-                    @if($errors->any())
-                        <div class="alert alert-danger">
-                            <h6>Errores de validación:</h6>
-                            <ul class="mb-0">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
                     <div class="d-flex justify-content-between mt-4">
-                        <a href="{{ route('transfer.select-type') }}" class="btn btn-secondary">Cancelar</a>
+                        {{-- CAMBIO: Redirige al Dashboard --}}
+                        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-success btn-lg">Confirmar Reserva</button>
                     </div>
                 </form>
