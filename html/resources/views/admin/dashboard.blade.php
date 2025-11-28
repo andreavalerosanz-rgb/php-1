@@ -13,7 +13,7 @@
         <p class="card-text">Rol: Administrador. Aquí gestionarás las reservas, tarifas y comisiones de los hoteles.</p>
         
         <a href="#" class="btn btn-danger">Gestión de Comisiones</a>
-        <a href="#" class="btn btn-secondary">Ver Reservas</a>
+        <a href="{{ route('mis_reservas') }}" class="btn btn-secondary">Ver Reservas</a>
         <a href="{{ route('calendar.index') }}" class="btn btn-success">Calendario</a>
     </div>
 </div>

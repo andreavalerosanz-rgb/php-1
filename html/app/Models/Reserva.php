@@ -41,4 +41,28 @@ class Reserva extends Model
         'origen_vuelo_salida',
         'hora_recogida_hotel',  
     ];
+
+    
+
+     /*
+    |--------------------------------------------------------------------------
+    | Relaciones
+    |--------------------------------------------------------------------------
+    */
+
+    public function hotel()
+    {
+        return $this->belongsTo(\App\Models\Hotel::class, 'id_hotel', 'id_hotel');
+    }
+
+    public function zona()
+    {
+        return $this->belongsTo(\App\Models\Zona::class, 'id_destino', 'id_zona');
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(\App\Models\Viajero::class, 'id_owner', 'id_viajero');
+    }
+
 }

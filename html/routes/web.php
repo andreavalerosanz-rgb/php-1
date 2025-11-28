@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TransferController; 
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\MisReservasController;
 
 // -----------------------------------------------------
 // RUTAS PÚBLICAS
@@ -35,6 +36,17 @@ Route::prefix('transfer')->group(function () {
     
     Route::post('/confirm', [TransferController::class, 'confirmReservation'])->name('transfer.reserve.confirm')->middleware('auth:web,corporate');
 }); // <-- CIERRE CORRECTO del grupo 'transfer'
+
+// Mis Reservas
+Route::middleware(['auth:admin,corporate,web'])->group(function() {
+    Route::get('/mis_reservas', [MisReservasController::class, 'index'])->name('mis_reservas');
+});
+// Editar reserva
+Route::get('/mis_reservas/{id}/edit', [MisReservasController::class, 'edit'])->name('reserva.edit');
+// Actualizar reserva
+Route::put('/mis_reservas/{id}', [MisReservasController::class, 'update'])->name('reserva.update');
+// Eliminar reserva
+Route::delete('/mis_reservas/{id}', [MisReservasController::class, 'destroy'])->name('reserva.destroy');
 
 // -----------------------------------------------------
 // RUTAS PROTEGIDAS (Requieren Viajero, Corporativo o Admin logueado)
