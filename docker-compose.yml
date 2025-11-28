@@ -15,9 +15,9 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: isla_transfer
-      # MYSQL_USER: root
-      # MYSQL_PASSWORD: root
+      MYSQL_DATABASE: mysql
+      MYSQL_USER: Andrea
+      MYSQL_PASSWORD: admin
     volumes:
       - db_data:/var/lib/mysql
 
