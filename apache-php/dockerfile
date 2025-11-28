@@ -8,16 +8,20 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     && docker-php-ext-install pdo pdo_mysql mysqli zip
 
-# Habilitar mod_rewrite para Apache (necesario para Laravel)
+# Habilitar mod_rewrite para Apache (necesario para rutas de Laravel)
 RUN a2enmod rewrite
 
 # Instalar Composer globalmente
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Establecer directorio de trabajo
+# 🔴 Cambiar DocumentRoot para que Apache apunte a la carpeta "public" de Laravel
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' \
+    /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf
+
+# Establecer directorio de trabajo en Laravel
 WORKDIR /var/www/html
 
-# Cambiar permisos para evitar problemas
+# Permisos correctos
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
