@@ -15,6 +15,13 @@
                 <h5 class="card-title">
                     Bienvenido/a, {{ Auth::guard('web')->user()->nombre }} {{ Auth::guard('web')->user()->apellido1 }}
                 </h5>
+                <hr>
+<h4>Tu resumen de actividad</h4>
+
+<div class="alert alert-success text-center mt-3">
+    <h2>{{ $stats['totalReservas'] }}</h2>
+    <p>Reservas totales</p>
+</div>
                 <p class="card-text">
                     Rol: Viajero. Aquí puedes gestionar tus datos personales, hacer nuevas búsquedas de traslados y revisar tus reservas existentes.
                 </p>

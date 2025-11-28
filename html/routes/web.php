@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TransferController; 
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\DashboardController;
 
 // -----------------------------------------------------
 // RUTAS PÚBLICAS
@@ -50,18 +51,19 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
     // Redirige al panel correcto basado en el guard activo (Controlador)
     Route::get('/dashboard', [AuthController::class, 'redirectDashboard'])->name('dashboard');
 
-    // Panel Administrador (Protegido por el guard 'admin')
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->middleware('auth:admin')->name('admin.dashboard');
+    // Panel Administrador
+Route::get('/admin/dashboard', [DashboardController::class, 'admin'])
+    ->middleware('auth:admin')
+    ->name('admin.dashboard');
 
-    // Panel Corporativo (Protegido por el guard 'corporate')
-    Route::get('/corporate/dashboard', function () {
-        return view('corporate.dashboard');
-    })->middleware('auth:corporate')->name('corporate.dashboard');
-    
-    // Panel de Viajero (Protegido por el guard 'web' - por defecto)
-    Route::get('/user/dashboard', function () {
-        return view('user.dashboard');
-    })->middleware('auth:web')->name('user.dashboard');
+// Panel Corporativo
+Route::get('/corporate/dashboard', [DashboardController::class, 'hotel'])
+    ->middleware('auth:corporate')
+    ->name('corporate.dashboard');
+
+// Panel Viajero
+Route::get('/user/dashboard', [DashboardController::class, 'user'])
+    ->middleware('auth:web')
+    ->name('user.dashboard');
+
 });
