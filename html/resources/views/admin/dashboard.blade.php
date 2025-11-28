@@ -44,7 +44,7 @@
     </div>
 </div>
         <a href="#" class="btn btn-danger">Gestión de Comisiones</a>
-        <a href="#" class="btn btn-secondary">Ver Reservas</a>
+        <a href="{{ route('mis_reservas') }}" class="btn btn-secondary">Ver Reservas</a>
         <a href="{{ route('calendar.index') }}" class="btn btn-success">Calendario</a>
     </div>
 </div>

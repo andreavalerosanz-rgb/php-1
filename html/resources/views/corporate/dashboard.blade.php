@@ -40,7 +40,7 @@
                 </ul>
                 
                 <div class="mt-4">
-                    <a href="#" class="btn btn-info text-white">Ver Reservas de Clientes</a>
+                    <a href="{{ route('mis_reservas') }}" class="btn btn-secondary">Mis Reservas</a>
                     <a href="#" class="btn btn-secondary">Ajustes de Cuenta</a>
                     <a href="{{ route('calendar.index') }}" class="btn btn-success">Calendario</a>
                 </div>
