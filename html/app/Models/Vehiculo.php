@@ -18,4 +18,9 @@ class Vehiculo extends Model
         'email_conductor',
         'password',
     ];
+
+    public function getDescripcionAttribute() //Función para acceder al atributo descripción sin tilde
+    {
+        return $this->attributes['Descripción'] ?? null;
+    }
 }

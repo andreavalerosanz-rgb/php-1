@@ -21,6 +21,8 @@ Route::post('/login', [AuthController::class, 'login']);
 // Calendario
 Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
 Route::get('/calendario/events', [CalendarController::class, 'events'])->name('calendar.events');
+Route::get('/calendario/reserva/{id}', [CalendarController::class, 'show'])->name('calendar.show');
+
 
 // REGISTRO DE USUARIOS PARTICULARES (VIAJEROS)
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
