@@ -18,6 +18,13 @@
                 <p class="card-text">
                     Email de Contacto: {{ Auth::guard('corporate')->user()->email_hotel }}
                 </p>
+                <hr>
+<h4>Resumen de traslados hacia tu hotel</h4>
+
+<div class="alert alert-info text-center mt-3">
+    <h2>{{ $stats['totalTraslados'] }}</h2>
+    <p>Reservas asociadas a tu alojamiento</p>
+</div>
                 <p class="card-text">
                     Rol: Hotel. Desde aquí puedes gestionar las reservas de tus clientes y revisar tu historial de comisiones.
                 </p>

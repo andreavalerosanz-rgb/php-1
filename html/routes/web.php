@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TransferController; 
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\MisReservasController;
+use App\Http\Controllers\DashboardController;
 
 // -----------------------------------------------------
 // RUTAS PÚBLICAS
@@ -22,6 +23,8 @@ Route::post('/login', [AuthController::class, 'login']);
 // Calendario
 Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
 Route::get('/calendario/events', [CalendarController::class, 'events'])->name('calendar.events');
+Route::get('/calendario/reserva/{id}', [CalendarController::class, 'show'])->name('calendar.show');
+
 
 // REGISTRO DE USUARIOS PARTICULARES (VIAJEROS)
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -60,18 +63,19 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
     // Redirige al panel correcto basado en el guard activo (Controlador)
     Route::get('/dashboard', [AuthController::class, 'redirectDashboard'])->name('dashboard');
 
-    // Panel Administrador (Protegido por el guard 'admin')
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->middleware('auth:admin')->name('admin.dashboard');
+    // Panel Administrador
+Route::get('/admin/dashboard', [DashboardController::class, 'admin'])
+    ->middleware('auth:admin')
+    ->name('admin.dashboard');
 
-    // Panel Corporativo (Protegido por el guard 'corporate')
-    Route::get('/corporate/dashboard', function () {
-        return view('corporate.dashboard');
-    })->middleware('auth:corporate')->name('corporate.dashboard');
-    
-    // Panel de Viajero (Protegido por el guard 'web' - por defecto)
-    Route::get('/user/dashboard', function () {
-        return view('user.dashboard');
-    })->middleware('auth:web')->name('user.dashboard');
+// Panel Corporativo
+Route::get('/corporate/dashboard', [DashboardController::class, 'hotel'])
+    ->middleware('auth:corporate')
+    ->name('corporate.dashboard');
+
+// Panel Viajero
+Route::get('/user/dashboard', [DashboardController::class, 'user'])
+    ->middleware('auth:web')
+    ->name('user.dashboard');
+
 });
