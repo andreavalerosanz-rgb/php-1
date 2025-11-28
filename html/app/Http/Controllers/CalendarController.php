@@ -18,19 +18,14 @@ class CalendarController extends Controller
     {
         $from = $request->query('from');
         $to   = $request->query('to');
-
-        // Normalizamos fechas (solo YYYY-MM-DD)
         $fromDate = substr($from, 0, 10);
         $toDate   = substr($to, 0, 10);
-
-        // Detectar usuario por guard
         $userWeb     = Auth::guard('web')->user();        // viajero
         $userHotel   = Auth::guard('corporate')->user();  // hotel
         $userAdmin   = Auth::guard('admin')->user();      // admin
 
         $query = Reserva::query();
 
-        // FILTRO POR ROL
         if ($userWeb) {
             // VIAJERO → solo sus reservas
             $query->where('tipo_owner', 'user')
@@ -47,7 +42,6 @@ class CalendarController extends Controller
             return response()->json([]);
         }
 
-        // FILTRO por fechas reales del traslado
         $query->where(function ($q) use ($fromDate, $toDate) {
             $q->whereBetween('fecha_entrada', [$fromDate, $toDate])
               ->orWhereBetween('fecha_vuelo_salida', [$fromDate, $toDate]);
@@ -56,9 +50,6 @@ class CalendarController extends Controller
         // Ejecutar consulta
         $reservas = $query->get()->map(function ($r) {
 
-            /* =======================
-               1. DETERMINAR FECHA REAL
-            ======================== */
             $start = null;
 
             if (in_array($r->id_tipo_reserva, [1, 3]) && $r->fecha_entrada) {
@@ -79,15 +70,9 @@ class CalendarController extends Controller
                 $start = $r->fecha_reserva;
             }
 
-            /* =======================
-               2. RECUPERAR HOTEL
-            ======================== */
             $hotel = Hotel::find($r->id_hotel);
             $hotelName = $hotel ? $hotel->nombre : 'Hotel';
 
-            /* =======================
-               3. TÍTULO BONITO
-            ======================== */
             switch ($r->id_tipo_reserva) {
                 case 1: // Aeropuerto → Hotel
                     $airport = $r->origen_vuelo_entrada ?: "Aeropuerto";
@@ -118,4 +103,21 @@ class CalendarController extends Controller
 
         return response()->json($reservas);
     }
+
+    //Detalle de las reservas en el Calendario
+
+    public function show($id)
+{
+    $reserva = Reserva::find($id);
+
+    if (!$reserva) {
+        abort(404, 'Reserva no encontrada');
+    }
+
+    $hotel = \App\Models\Hotel::find($reserva->id_hotel);
+    $vehiculo = \App\Models\Vehiculo::find($reserva->id_vehiculo);
+
+    return view('calendar.detalle', compact('reserva', 'hotel', 'vehiculo'));
+}
+
 }
