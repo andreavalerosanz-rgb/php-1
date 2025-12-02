@@ -39,7 +39,7 @@
                     </div>
                     <div class="card-body">
                         <p class="small text-muted mb-3">Seleccione el tipo de traslado para su cliente. El destino/origen se fijará automáticamente en <strong>{{ Auth::guard('corporate')->user()->nombre }}</strong>.</p>
-                        
+
                         <div class="row g-2">
                             <div class="col-md-4">
                                 <form method="POST" action="{{ route('transfer.select-type.post') }}">
@@ -83,19 +83,24 @@
                         ID de Zona Asignada: <strong>{{ Auth::guard('corporate')->user()->id_zona }}</strong>
                     </p>
                 </div>
-                
+
                 <hr>
-                
+
                 <div class="d-flex gap-2">
                     <a href="{{ route('mis_reservas') }}" class="btn btn-primary">
                         <i class="fas fa-list"></i> Mis Reservas
                     </a>
+
                     <a href="{{ route('calendar.index') }}" class="btn btn-success">
                         <i class="fas fa-calendar-alt"></i> Calendario
                     </a>
-                    {{-- Enlace placeholder para ajustes --}}
-                    <button class="btn btn-secondary" disabled>Ajustes de Cuenta</button>
+
+                    {{-- ✔ AJUSTES DE CUENTA (IR A PERFIL) --}}
+                    <a href="{{ route('profile.edit') }}" class="btn btn-secondary">
+                        <i class="fas fa-user-cog"></i> Ajustes de Cuenta
+                    </a>
                 </div>
+
             </div>
         </div>
     </div>

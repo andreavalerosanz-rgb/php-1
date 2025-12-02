@@ -18,11 +18,58 @@ class Hotel extends Authenticatable
         'nombre',
         'id_zona',
         'email_hotel',
-        'Comision', 
+        'Comision',
         'password',
     ];
-    
+
     protected $hidden = [
         'password',
     ];
+
+    // ======================================================
+    //  Helpers pensados para el módulo de PERFILES
+    // ======================================================
+
+    /**
+     * Nombre que mostraremos en la cabecera del perfil.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->nombre;
+    }
+
+    /**
+     * Email "genérico" del perfil (equivalente a email_admin / email_viajero).
+     */
+    public function getProfileEmailAttribute(): string
+    {
+        return $this->email_hotel;
+    }
+
+    /**
+     * Campos que el hotel puede editar desde "Mi perfil".
+     */
+    public static function profileFillable(): array
+    {
+        return ['nombre', 'email_hotel', 'password'];
+    }
+
+    /**
+     * Reglas de validación para actualizar el perfil de un hotel.
+     */
+    public static function profileRules(int $id): array
+    {
+        return [
+            'nombre'      => ['required', 'string', 'max:100'],
+            'email_hotel' => [
+                'required',
+                'email',
+                'max:100',
+                // unique en transfer_hoteles, ignorando al propio hotel
+                'unique:transfer_hoteles,email_hotel,' . $id . ',id_hotel',
+            ],
+            // password opcional, solo si la cambia
+            'password'    => ['nullable', 'string', 'min:6', 'confirmed'],
+        ];
+    }
 }

@@ -3,7 +3,7 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-md-12">
-        
+
         {{-- Mensaje de Bienvenida --}}
         <div class="alert alert-danger text-center shadow-sm" role="alert">
             <h4 class="alert-heading mb-0"><i class="fas fa-user-shield"></i> Panel de Administración</h4>
@@ -105,6 +105,11 @@
                                 {{-- Enlace a Mis Reservas (Reservas hechas por el admin) --}}
                                 <a href="{{ route('mis_reservas') }}" class="btn btn-secondary">
                                     <i class="fas fa-user-clock"></i> Mis Reservas Creadas
+                                </a>
+
+                                {{-- Ajustes de cuenta / Perfil --}}
+                                <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-user-cog"></i> Ajustes de Cuenta
                                 </a>
 
                                 {{-- Enlace al Calendario --}}

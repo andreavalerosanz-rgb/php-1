@@ -1,108 +1,144 @@
 <?php
-// routes/web.php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\TransferController; 
+use App\Http\Controllers\TransferController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\MisReservasController;
-use App\Http\Controllers\AdminController; 
-use App\Http\Controllers\CorporateController; 
-use App\Http\Controllers\DashboardController; 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CorporateController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 
-
-// =========================================================================
+// =====================================================================
 // 1. RUTAS PÚBLICAS Y DE AUTENTICACIÓN
-// =========================================================================
+// =====================================================================
 
-// Página de inicio (Front-End estático)
+// Home
 Route::get('/', function () {
-    return view('home'); 
+    return view('home');
 })->name('home');
 
 // Login
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 
-// Registro (Usuarios Particulares y Corporativos)
+// Registro (viajero + corporativo)
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']); 
+Route::post('/register', [AuthController::class, 'register']);
 
-// Calendario (General / Producto 2)
+// Calendario
 Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
 Route::get('/calendario/events', [CalendarController::class, 'events'])->name('calendar.events');
 Route::get('/calendario/reserva/{id}', [CalendarController::class, 'show'])->name('calendar.show');
 
 
-// =========================================================================
-// 2. FLUJO DE RESERVA DE TRASLADOS (Parte Pública)
-// =========================================================================
-// GET: Accesible para ver el formulario. 
-// POST: Se protege más abajo en el grupo 'auth' para asegurar la sesión.
-
+// =====================================================================
+// 2. FLUJO DE RESERVA (parte pública)
+// =====================================================================
 Route::prefix('transfer')->group(function () {
-    Route::get('/select-type', [TransferController::class, 'showTypeSelection'])->name('transfer.select-type');
-    Route::post('/select-type', [TransferController::class, 'postTypeSelection'])->name('transfer.select-type.post');
-    
-    Route::get('/reserve/{type}', [TransferController::class, 'showReservationForm'])->name('transfer.reserve.form');
-}); 
+    Route::get('/select-type', [TransferController::class, 'showTypeSelection'])
+        ->name('transfer.select-type');
+
+    Route::post('/select-type', [TransferController::class, 'postTypeSelection'])
+        ->name('transfer.select-type.post');
+
+    Route::get('/reserve/{type}', [TransferController::class, 'showReservationForm'])
+        ->name('transfer.reserve.form');
+});
 
 
-// =========================================================================
-// 3. RUTAS PROTEGIDAS (Requieren Viajero, Corporativo o Admin logueado)
-// =========================================================================
-
+// =====================================================================
+// 3. RUTAS PROTEGIDAS (requieren login con cualquier rol)
+// =====================================================================
 Route::middleware(['auth:admin,corporate,web'])->group(function () {
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Redirección inteligente al dashboard correcto según el rol
+    // Redirección al dashboard según rol
     Route::get('/dashboard', [AuthController::class, 'redirectDashboard'])->name('dashboard');
 
-    // --- CONFIRMACIÓN DE RESERVA (POST) ---
-    // Protegida para obtener el ID del usuario logueado correctamente
+    // ---------------------------------------------------------------
+    // 3.A) PERFIL (común para Admin, Hotel y Viajero)
+    // ---------------------------------------------------------------
+    Route::get('/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
+
+    // ---------------------------------------------------------------
+    // 3.B) ADMIN → CREAR USUARIOS CORPORATIVOS DESDE SU PERFIL
+    // ---------------------------------------------------------------
+    Route::prefix('admin/perfil')
+        ->name('admin.profile.')
+        ->middleware('auth:admin')
+        ->group(function () {
+
+            Route::get('/corporativo/crear', [ProfileController::class, 'createCorporate'])
+                ->name('corporate.create');
+
+            Route::post('/corporativo', [ProfileController::class, 'storeCorporate'])
+                ->name('corporate.store');
+        });
+
+    // ---------------------------------------------------------------
+    // 3.C) CONFIRMACIÓN RESERVA
+    // ---------------------------------------------------------------
     Route::post('transfer/confirm', [TransferController::class, 'confirmReservation'])
         ->name('transfer.reserve.confirm');
 
-
-    // --- GESTIÓN DE "MIS RESERVAS" (CRUD General) ---
-    Route::prefix('mis_reservas')->group(function() {
+    // ---------------------------------------------------------------
+    // 3.D) MIS RESERVAS (CRUD)
+    // ---------------------------------------------------------------
+    Route::prefix('mis_reservas')->group(function () {
         Route::get('/', [MisReservasController::class, 'index'])->name('mis_reservas');
         Route::get('{id}/edit', [MisReservasController::class, 'edit'])->name('reserva.edit');
         Route::put('{id}', [MisReservasController::class, 'update'])->name('reserva.update');
         Route::delete('{id}', [MisReservasController::class, 'destroy'])->name('reserva.destroy');
     });
 
+    // ---------------------------------------------------------------
+    // 3.E) PANEL ADMIN
+    // ---------------------------------------------------------------
+    Route::prefix('admin')
+        ->name('admin.')
+        ->middleware('auth:admin')
+        ->group(function () {
 
-    // --- PANEL ADMINISTRADOR (AdminController + DashboardController) ---
-    Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function () {
-        // Dashboard principal
-        Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
-        
-        // Funcionalidades P3:
-        Route::get('/reservations/list', [AdminController::class, 'listReservations'])->name('reservations.list'); // Listado global
-        Route::get('/commissions', [AdminController::class, 'showCommissions'])->name('commissions'); // Gestión de comisiones
-    });
+            Route::get('/dashboard', [DashboardController::class, 'admin'])
+                ->name('dashboard');
 
+            Route::get('/reservations/list', [AdminController::class, 'listReservations'])
+                ->name('reservations.list');
 
-    // --- PANEL CORPORATIVO (CorporateController + DashboardController) ---
-    Route::prefix('corporate')->name('corporate.')->middleware('auth:corporate')->group(function () {
-        // Dashboard principal
-        Route::get('/dashboard', [DashboardController::class, 'hotel'])->name('dashboard');
-        
-        // Funcionalidades P3:
-        Route::get('/reservations/my', [CorporateController::class, 'listMyReservations'])->name('reservations.my'); // Reservas del hotel
-        Route::get('/commissions/list', [CorporateController::class, 'listCommissions'])->name('commissions.list'); // Sus comisiones
-    });
-    
+            Route::get('/commissions', [AdminController::class, 'showCommissions'])
+                ->name('commissions');
+        });
 
-    // --- PANEL VIAJERO (DashboardController) ---
-    // Dashboard principal
+    // ---------------------------------------------------------------
+    // 3.F) PANEL CORPORATIVO
+    // ---------------------------------------------------------------
+    Route::prefix('corporate')
+        ->name('corporate.')
+        ->middleware('auth:corporate')
+        ->group(function () {
+
+            Route::get('/dashboard', [DashboardController::class, 'hotel'])
+                ->name('dashboard');
+
+            Route::get('/reservations/my', [CorporateController::class, 'listMyReservations'])
+                ->name('reservations.my');
+
+            Route::get('/commissions/list', [CorporateController::class, 'listCommissions'])
+                ->name('commissions.list');
+        });
+
+    // ---------------------------------------------------------------
+    // 3.G) PANEL VIAJERO
+    // ---------------------------------------------------------------
     Route::get('/user/dashboard', [DashboardController::class, 'user'])
         ->middleware('auth:web')
         ->name('user.dashboard');
-    
-    // Ruta adicional para listado específico (si se requiere aparte de mis_reservas)
-    Route::get('/user/reservations', [TransferController::class, 'listUserReservations'])->name('user.reservations');
+
+    Route::get('/user/reservations', [TransferController::class, 'listUserReservations'])
+        ->name('user.reservations');
 });

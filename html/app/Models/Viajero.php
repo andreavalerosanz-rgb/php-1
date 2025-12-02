@@ -11,9 +11,14 @@ class Viajero extends Authenticatable
 
     protected $table = 'transfer_viajeros';
     protected $primaryKey = 'id_viajero';
-    
-    public $timestamps = false; 
-    
+
+    public $timestamps = false;
+
+    /**
+     * IMPORTANTE:
+     * Esto indica a Laravel que el campo para login NO es "email",
+     * sino "email_viajero".
+     */
     public function getAuthIdentifierName()
     {
         return 'email_viajero';
@@ -21,14 +26,14 @@ class Viajero extends Authenticatable
 
     protected $fillable = [
         'nombre',
-        'email_viajero',
-        'password',
         'apellido1',
         'apellido2',
         'direccion',
         'codigoPostal',
         'ciudad',
         'pais',
+        'email_viajero',
+        'password',
     ];
 
     protected $hidden = [
