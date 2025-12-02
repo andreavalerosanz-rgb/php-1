@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CorporateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\VehiculosController;
 
 // =====================================================================
 // 1. RUTAS PÚBLICAS Y DE AUTENTICACIÓN
@@ -112,6 +113,25 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
 
             Route::get('/commissions', [AdminController::class, 'showCommissions'])
                 ->name('commissions');
+
+            // Rutas para la gestión de vehículos
+            Route::get('vehiculos', [VehiculosController::class, 'index'])
+                ->name('vehiculos.index');
+
+            Route::get('vehiculos/crear', [VehiculosController::class, 'create'])
+                ->name('vehiculos.create');
+
+            Route::post('vehiculos', [VehiculosController::class, 'store'])
+                ->name('vehiculos.store');
+
+            Route::get('vehiculos/{id}/editar', [VehiculosController::class, 'edit'])
+                ->name('vehiculos.edit');
+
+            Route::put('vehiculos/{id}', [VehiculosController::class, 'update'])
+                ->name('vehiculos.update');
+
+            Route::delete('vehiculos/{id}', [VehiculosController::class, 'destroy'])
+                ->name('vehiculos.destroy');
         });
 
     // ---------------------------------------------------------------

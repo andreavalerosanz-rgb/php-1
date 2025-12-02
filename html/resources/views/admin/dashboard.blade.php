@@ -116,6 +116,11 @@
                                 <a href="{{ route('calendar.index') }}" class="btn btn-success">
                                     <i class="fas fa-calendar-alt"></i> Ver Calendario
                                 </a>
+
+                                {{-- Enlace a Gestión de Vehículos --}}
+                                <a href="{{ route('admin.vehiculos.index') }}" class="btn btn-warning">
+                                    <i class="fas fa-car"></i> Gestión de Vehículos
+                                </a>
                             </div>
                         </div>
                     </div>
