@@ -5,40 +5,44 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Hotel;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class AdminHotelController extends Controller
 {
     /**
-     * Mostrar listado de hoteles corporativos
+     * Mostrar listado de hoteles corporativos + formulario
      */
     public function index()
     {
         $hoteles = Hotel::orderBy('nombre')->paginate(15);
+        $zonas = DB::table('transfer_zonas')->get(); // ← CARGA ZONAS
 
-        return view('admin.gestionhoteles', compact('hoteles'));
+        return view('admin.gestionhoteles', compact('hoteles', 'zonas'));
     }
 
     /**
-     * Mostrar formulario de creación
+     * Mostrar formulario de creación (usa la misma vista)
      */
     public function create()
     {
-        return view('admin.gestionhoteles');
+        $hoteles = Hotel::orderBy('nombre')->paginate(15);
+        $zonas = DB::table('transfer_zonas')->get(); // ← CARGA ZONAS
+
+        return view('admin.gestionhoteles', compact('hoteles', 'zonas'));
     }
 
     /**
-     * Guardar el nuevo usuario corporativo
+     * Guardar el nuevo hotel corporativo
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'email_hotel' => 'required|email|unique:hoteles,email_hotel',
-            'Comision' => 'required|numeric|min:0|max:100',
-            'id_zona' => 'required|integer',
-            'password' => 'required|min:6|confirmed',
-        ]);
+       $request->validate([
+    'nombre' => 'required|string|max:255',
+    'email_hotel' => 'required|email|unique:transfer_hoteles,email_hotel',
+    'Comision' => 'required|numeric|min:0|max:100',
+    'id_zona' => 'required|integer|exists:transfer_zonas,id_zona',
+    'password' => 'required|min:6|confirmed',
+]);
 
         Hotel::create([
             'nombre' => $request->nombre,

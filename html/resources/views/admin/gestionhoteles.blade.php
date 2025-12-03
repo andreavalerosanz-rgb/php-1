@@ -52,10 +52,11 @@
                         <div class="mb-3">
                             <label class="form-label">Comisión (%)</label>
                             <input type="number"
-                                   name="Comision"
-                                   class="form-control @error('Comision') is-invalid @enderror"
-                                   value="{{ old('Comision', 10) }}"
-                                   min="0" max="100" step="1">
+       name="Comision"
+       class="form-control @error('Comision') is-invalid @enderror"
+       value="{{ old('Comision') }}"
+       min="0"
+       max="100">
                             @error('Comision')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -66,17 +67,23 @@
 
                         {{-- Zona (si ya tenéis listado de zonas, puedes sustituir por un select) --}}
                         <div class="mb-3">
-                            <label class="form-label">ID de Zona</label>
-                            <input type="number"
-                                   name="id_zona"
-                                   class="form-control @error('id_zona') is-invalid @enderror"
-                                   value="{{ old('id_zona') }}"
-                                   placeholder="Ej: 1">
-                            @error('id_zona')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+    <label class="form-label">Asignar zona</label>
 
+    <select name="id_zona" class="form-select @error('id_zona') is-invalid @enderror">
+        <option value="">Seleccione una zona</option>
+
+        @foreach($zonas as $zona)
+            <option value="{{ $zona->id_zona }}"
+                {{ old('id_zona') == $zona->id_zona ? 'selected' : '' }}>
+                {{ $zona->id_zona }} – {{ $zona->descripcion }}
+            </option>
+        @endforeach
+    </select>
+
+    @error('id_zona')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
                         {{-- Contraseña --}}
                         <div class="row">
                             <div class="col-md-6 mb-3">
