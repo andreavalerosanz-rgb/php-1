@@ -148,8 +148,8 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
             Route::get('/reservations/my', [CorporateController::class, 'listMyReservations'])
                 ->name('reservations.my');
 
-            Route::get('/commissions/list', [CorporateController::class, 'listCommissions'])
-                ->name('commissions.list');
+            Route::get('/comissions', [CorporateController::class, 'commissions'])
+                ->name('comissions');
         });
 
     // ---------------------------------------------------------------
