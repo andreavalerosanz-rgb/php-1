@@ -34,38 +34,52 @@ public function showRegister()
     // ------------------------------------------------------------------
     
     public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+{
+    // 0) Obtener los valores sin validar aún
+    $email = $request->input('email');
+    $password = $request->input('password');
 
-        $email = $credentials['email'];
-        $password = $credentials['password'];
+    // 1) Comprobar si es un hotel y si está inactivo ANTES DE VALIDAR
+    $hotel = Hotel::where('email_hotel', $email)->first();
 
-        // 1. INTENTAR LOGIN COMO ADMINISTRADOR (Guarda 'admin')
-        if (Auth::guard('admin')->attempt(['email_admin' => $email, 'password' => $password])) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        // 2. INTENTAR LOGIN COMO CORPORATIVO (Guarda 'corporate')
-        if (Auth::guard('corporate')->attempt(['email_hotel' => $email, 'password' => $password])) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('corporate.dashboard'));
-        }
-        
-        // 3. INTENTAR LOGIN COMO VIAJERO (Guarda 'web')
-        if (Auth::guard('web')->attempt(['email_viajero' => $email, 'password' => $password])) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('user.dashboard'));
-        }
-
-        // SI TODOS FALLAN
-        throw ValidationException::withMessages([
-            'email' => __('Las credenciales proporcionadas no coinciden con nuestros registros.'),
-        ]);
+    if ($hotel && $hotel->activo == 0) {
+        return back()->withErrors([
+            'auth_error' => 'Su usuario está inhabilitado. Contacte con la empresa para su gestión.',
+        ])->withInput();
     }
+
+    // 2) Validar credenciales
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    $email = $credentials['email'];
+    $password = $credentials['password'];
+
+    // 3) Login admin
+    if (Auth::guard('admin')->attempt(['email_admin' => $email, 'password' => $password])) {
+        $request->session()->regenerate();
+        return redirect()->intended(route('admin.dashboard'));
+    }
+
+    // 4) Login corporate (hotel)
+    if (Auth::guard('corporate')->attempt(['email_hotel' => $email, 'password' => $password])) {
+        $request->session()->regenerate();
+        return redirect()->intended(route('corporate.dashboard'));
+    }
+
+    // 5) Login viajero
+    if (Auth::guard('web')->attempt(['email_viajero' => $email, 'password' => $password])) {
+        $request->session()->regenerate();
+        return redirect()->intended(route('user.dashboard'));
+    }
+
+    // 6) Credenciales incorrectas
+    throw ValidationException::withMessages([
+        'email' => __('Las credenciales no coinciden. Inténtalo de nuevo'),
+    ]);
+}
     
     // ------------------------------------------------------------------
     // PROCESOS DE AUTENTICACIÓN (REGISTRO MULTI-ROL)

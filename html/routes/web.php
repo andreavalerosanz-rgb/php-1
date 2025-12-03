@@ -67,28 +67,13 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
     Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
 
     // ---------------------------------------------------------------
-    // 3.B) ADMIN → CREAR USUARIOS CORPORATIVOS DESDE SU PERFIL
-    // ---------------------------------------------------------------
-    Route::prefix('admin/perfil')
-        ->name('admin.profile.')
-        ->middleware('auth:admin')
-        ->group(function () {
-
-            Route::get('/corporativo/crear', [ProfileController::class, 'createCorporate'])
-                ->name('corporate.create');
-
-            Route::post('/corporativo', [ProfileController::class, 'storeCorporate'])
-                ->name('corporate.store');
-        });
-
-    // ---------------------------------------------------------------
-    // 3.C) CONFIRMACIÓN RESERVA
+    // 3.B) CONFIRMACIÓN RESERVA
     // ---------------------------------------------------------------
     Route::post('transfer/confirm', [TransferController::class, 'confirmReservation'])
         ->name('transfer.reserve.confirm');
 
     // ---------------------------------------------------------------
-    // 3.D) MIS RESERVAS (CRUD)
+    // 3.C) MIS RESERVAS (CRUD)
     // ---------------------------------------------------------------
     Route::prefix('mis_reservas')->group(function () {
         Route::get('/', [MisReservasController::class, 'index'])->name('mis_reservas');
@@ -98,7 +83,7 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
     });
 
     // ---------------------------------------------------------------
-    // 3.E) PANEL ADMIN
+    // 3.D) PANEL ADMIN
     // ---------------------------------------------------------------
     Route::prefix('admin')
         ->name('admin.')
@@ -132,10 +117,37 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
 
             Route::delete('vehiculos/{id}', [VehiculosController::class, 'destroy'])
                 ->name('vehiculos.destroy');
+            
+            
+// ---------------------------------------------------------------
+// 3.D.2) ADMIN → GESTIÓN DE HOTELES
+// ---------------------------------------------------------------
+Route::prefix('hoteles')->name('hoteles.')->group(function () {
+
+    // Listado de hoteles
+    Route::get('/', [App\Http\Controllers\AdminHotelController::class, 'index'])
+        ->name('index');
+
+    // Formulario de creación
+    Route::get('/crear', [App\Http\Controllers\AdminHotelController::class, 'create'])
+        ->name('create');
+
+    // Guardar nuevo hotel
+    Route::post('/crear', [App\Http\Controllers\AdminHotelController::class, 'store'])
+        ->name('store');
+
+         // Inhabilitar hotel
+    Route::put('/{id}/inhabilitar', [App\Http\Controllers\AdminHotelController::class, 'disable'])
+        ->name('disable');
+
+    // Habilitar hotel
+    Route::put('/{id}/habilitar', [App\Http\Controllers\AdminHotelController::class, 'enable'])
+        ->name('enable');
+});
         });
 
     // ---------------------------------------------------------------
-    // 3.F) PANEL CORPORATIVO
+    // 3.E) PANEL CORPORATIVO
     // ---------------------------------------------------------------
     Route::prefix('corporate')
         ->name('corporate.')
@@ -153,7 +165,7 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
         });
 
     // ---------------------------------------------------------------
-    // 3.G) PANEL VIAJERO
+    // 3.F) PANEL VIAJERO
     // ---------------------------------------------------------------
     Route::get('/user/dashboard', [DashboardController::class, 'user'])
         ->middleware('auth:web')
