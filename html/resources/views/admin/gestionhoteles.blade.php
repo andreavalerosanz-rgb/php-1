@@ -7,7 +7,7 @@
             <div class="card shadow-lg border-0 rounded-4">
 
                 <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <span>Crear usuario corporativo</span>
+                    <span>Crear usuario corporativo - Hotel</span>
                     <span class="badge bg-secondary text-uppercase">ADMIN</span>
                 </div>
 
@@ -19,7 +19,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('admin.profile.corporate.store') }}">
+                    <form method="POST" action="{{ route('admin.hoteles.store') }}">
                         @csrf
 
                         {{-- Nombre del hotel --}}

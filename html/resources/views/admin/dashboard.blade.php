@@ -96,6 +96,10 @@
                                 <a href="{{ route('admin.commissions') }}" class="btn btn-danger">
                                     <i class="fas fa-euro-sign"></i> Gestión de Comisiones
                                 </a>
+{{-- Gestión de Hoteles --}}
+<a href="{{ route('admin.hoteles.index') }}" class="btn btn-primary">
+    <i class="fas fa-hotel"></i> Gestión de Hoteles
+</a>
 
                                 {{-- Enlace al Listado Global de Reservas (Ruta nueva del AdminController) --}}
                                 <a href="{{ route('admin.reservations.list') }}" class="btn btn-dark">
