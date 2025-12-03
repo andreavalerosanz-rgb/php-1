@@ -117,8 +117,9 @@ Route::middleware(['auth:admin,corporate,web'])->group(function () {
 
             Route::delete('vehiculos/{id}', [VehiculosController::class, 'destroy'])
                 ->name('vehiculos.destroy');
-
-                // ---------------------------------------------------------------
+            
+            
+// ---------------------------------------------------------------
 // 3.D.2) ADMIN → GESTIÓN DE HOTELES
 // ---------------------------------------------------------------
 Route::prefix('hoteles')->name('hoteles.')->group(function () {
@@ -134,6 +135,14 @@ Route::prefix('hoteles')->name('hoteles.')->group(function () {
     // Guardar nuevo hotel
     Route::post('/crear', [App\Http\Controllers\AdminHotelController::class, 'store'])
         ->name('store');
+
+         // Inhabilitar hotel
+    Route::put('/{id}/inhabilitar', [App\Http\Controllers\AdminHotelController::class, 'disable'])
+        ->name('disable');
+
+    // Habilitar hotel
+    Route::put('/{id}/habilitar', [App\Http\Controllers\AdminHotelController::class, 'enable'])
+        ->name('enable');
 });
         });
 

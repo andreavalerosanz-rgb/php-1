@@ -14,10 +14,10 @@ class AdminHotelController extends Controller
      */
     public function index()
     {
-        $hoteles = Hotel::orderBy('nombre')->paginate(15);
-        $zonas = DB::table('transfer_zonas')->get(); // ← CARGA ZONAS
+        $hoteles = Hotel::orderBy('nombre')->get();
+    $zonas = \DB::table('transfer_zonas')->get();
 
-        return view('admin.gestionhoteles', compact('hoteles', 'zonas'));
+    return view('admin.gestionhoteles', compact('hoteles', 'zonas'));
     }
 
     /**
@@ -56,4 +56,23 @@ class AdminHotelController extends Controller
             ->route('admin.hoteles.index')
             ->with('status', 'Hotel corporativo creado correctamente.');
     }
+
+    public function disable($id)
+{
+    $hotel = Hotel::findOrFail($id);
+    $hotel->activo = 0;
+    $hotel->save();
+
+    return back()->with('status', 'Hotel inhabilitado correctamente.');
+}
+
+public function enable($id)
+{
+    $hotel = Hotel::findOrFail($id);
+    $hotel->activo = 1;
+    $hotel->save();
+
+    return back()->with('status', 'Hotel habilitado correctamente.');
+}
+
 }
