@@ -95,6 +95,10 @@
                         <i class="fas fa-calendar-alt"></i> Calendario
                     </a>
 
+                    <a href="{{ route('corporate.comissions') }}" class="btn btn-success">
+                        <i class="fas fa-calendar-alt"></i> Comisiones a su hotel
+                    </a>
+
                     {{-- ✔ AJUSTES DE CUENTA (IR A PERFIL) --}}
                     <a href="{{ route('profile.edit') }}" class="btn btn-secondary">
                         <i class="fas fa-user-cog"></i> Ajustes de Cuenta

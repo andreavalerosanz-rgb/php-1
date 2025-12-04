@@ -34,25 +34,11 @@ public function showRegister()
     // ------------------------------------------------------------------
     
     public function login(Request $request)
-{
-    // 0) Obtener los valores sin validar aún
-    $email = $request->input('email');
-    $password = $request->input('password');
-
-    // 1) Comprobar si es un hotel y si está inactivo ANTES DE VALIDAR
-    $hotel = Hotel::where('email_hotel', $email)->first();
-
-    if ($hotel && $hotel->activo == 0) {
-        return back()->withErrors([
-            'auth_error' => 'Su hotel está inhabilitado. Contacte con la empresa para su gestión.',
-        ])->withInput();
-    }
-
-    // 2) Validar credenciales
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
     $email = $credentials['email'];
     $password = $credentials['password'];

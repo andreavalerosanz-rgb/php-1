@@ -160,8 +160,8 @@ Route::prefix('hoteles')->name('hoteles.')->group(function () {
             Route::get('/reservations/my', [CorporateController::class, 'listMyReservations'])
                 ->name('reservations.my');
 
-            Route::get('/commissions/list', [CorporateController::class, 'listCommissions'])
-                ->name('commissions.list');
+            Route::get('/comissions', [CorporateController::class, 'commissions'])
+                ->name('comissions');
         });
 
     // ---------------------------------------------------------------
