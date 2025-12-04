@@ -55,4 +55,41 @@ class AdminController extends Controller
 
         return view('admin.commissions-report', compact('commissionReport', 'month', 'year'));
     }
+
+    public function getCommissionData($month, $year, $hotelFilter = null)
+{
+    $query = Reserva::whereYear('fecha_reserva', $year)
+        ->whereMonth('fecha_reserva', $month)
+        ->where('comision_ganada', '>', 0);
+
+    if ($hotelFilter) {
+        $query->where('id_hotel', $hotelFilter);
+    }
+
+    if (!$hotelFilter) {
+        $commissions = $query->selectRaw('
+                id_hotel, 
+                COUNT(*) as total_reservas,
+                SUM(precio_total) as total_ingresos, 
+                SUM(comision_ganada) as total_comision
+            ')
+            ->groupBy('id_hotel')
+            ->get();
+
+        return $commissions->map(function ($item) {
+            $hotel = Hotel::find($item->id_hotel);
+
+            return [
+                'hotel_id' => $item->id_hotel,
+                'nombre_hotel' => $hotel ? $hotel->nombre : 'Hotel Eliminado',
+                'total_reservas' => $item->total_reservas,
+                'total_ingresos' => $item->total_ingresos,
+                'total_comision' => $item->total_comision,
+            ];
+        });
+    }
+
+    return $query->with(['vehiculo', 'hotel'])->get();
+}
+
 }

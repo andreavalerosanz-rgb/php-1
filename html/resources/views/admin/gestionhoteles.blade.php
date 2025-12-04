@@ -3,6 +3,24 @@
 @section('content')
 <div class="container py-5">
 
+{{-- NAV TABS --}}
+<ul class="nav nav-tabs mb-4" id="hotelTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {{ request('tab') !== 'comisiones' ? 'active' : '' }}" 
+        id="hoteles-tab" data-bs-toggle="tab" data-bs-target="#hoteles">
+    <i class="fas fa-hotel"></i> Gestión de Hoteles
+</button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+       <button class="nav-link {{ request('tab') === 'comisiones' ? 'active' : '' }}" 
+        id="comisiones-tab" data-bs-toggle="tab" data-bs-target="#comisiones">
+    <i class="fas fa-euro-sign"></i> Gestión de Comisiones
+</button>
+    </li>
+</ul>
+<div class="tab-content" id="hotelTabsContent">
+    <div class="tab-pane fade {{ request('tab') !== 'comisiones' ? 'show active' : '' }}" id="hoteles">
     <h2 class="mb-4">Gestión de Hoteles</h2>
 
     {{-- MENSAJE DE CONFIRMACIÓN --}}
@@ -166,9 +184,22 @@
                 <button type="submit" class="btn btn-primary px-4 w-100">
                     Crear usuario corporativo
                 </button>
-
             </form>
         </div>
     </div>
 </div>
+    <div class="tab-pane fade {{ request('tab') === 'comisiones' ? 'show active' : '' }}" id="comisiones">
+    @include('admin.partials.commissions-table')
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const activeTab = "{{ request('tab') }}";
+
+    if (activeTab === "comisiones") {
+        new bootstrap.Tab(document.querySelector('#comisiones-tab')).show();
+    } else {
+        new bootstrap.Tab(document.querySelector('#hoteles-tab')).show();
+    }
+});
+</script>
 @endsection

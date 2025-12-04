@@ -44,7 +44,7 @@ public function showRegister()
 
     if ($hotel && $hotel->activo == 0) {
         return back()->withErrors([
-            'auth_error' => 'Su usuario está inhabilitado. Contacte con la empresa para su gestión.',
+            'auth_error' => 'Su hotel está inhabilitado. Contacte con la empresa para su gestión.',
         ])->withInput();
     }
 
