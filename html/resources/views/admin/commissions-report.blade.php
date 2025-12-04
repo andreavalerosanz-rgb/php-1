@@ -1,6 +1,3 @@
-@extends('layouts.app')
-
-@section('content')
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="card shadow-lg">
@@ -15,6 +12,7 @@
                 <div class="mb-4">
                     {{-- Formulario para filtrar por mes/año --}}
                     <form method="GET" action="{{ route('admin.commissions') }}" class="row g-3">
+                        <input type="hidden" name="tab" value="comisiones">
                         <div class="col-auto">
                             <label for="month" class="visually-hidden">Mes</label>
                             <select name="month" id="month" class="form-select">
@@ -72,4 +70,3 @@
         </div>
     </div>
 </div>
-@endsection

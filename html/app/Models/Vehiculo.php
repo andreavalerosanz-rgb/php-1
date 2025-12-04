@@ -23,4 +23,10 @@ class Vehiculo extends Model
     {
         return $this->attributes['Descripción'] ?? null;
     }
+
+    public function reservas()
+{
+    return $this->hasMany(\App\Models\Reserva::class, 'id_vehiculo', 'id_vehiculo');
+}
+
 }
