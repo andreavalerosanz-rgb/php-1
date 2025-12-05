@@ -65,4 +65,20 @@ class Reserva extends Model
         return $this->belongsTo(\App\Models\Viajero::class, 'id_owner', 'id_viajero');
     }
 
+    public function vehiculo()
+{
+    return $this->belongsTo(\App\Models\Vehiculo::class, 'id_vehiculo', 'id_vehiculo');
+}
+
+//Descriptores para mostrar tipo de traslado en lugar de ID's
+public function getTipoTrasladoNombreAttribute()
+{
+    return match($this->id_tipo_reserva) {
+        1 => 'Aeropuerto → Hotel',
+        2 => 'Hotel → Aeropuerto',
+        3 => 'Ida y Vuelta',
+        default => 'Desconocido'
+    };
+}
+
 }

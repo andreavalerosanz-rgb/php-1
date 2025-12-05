@@ -20,6 +20,7 @@ class Hotel extends Authenticatable
         'email_hotel',
         'Comision',
         'password',
+        'activo',
     ];
 
     protected $hidden = [

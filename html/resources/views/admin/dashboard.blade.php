@@ -85,40 +85,47 @@
                         </div>
                     </div>
 
-                    {{-- 3. SECCIÓN DE GESTIÓN (Enlaces actualizados) --}}
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-header bg-secondary text-white fw-bold">
-                                <i class="fas fa-cogs"></i> Gestión y Reportes
-                            </div>
-                            <div class="card-body d-grid gap-2 align-content-center">
-                                {{-- Enlace a Comisiones (Ruta nueva del AdminController) --}}
-                                <a href="{{ route('admin.commissions') }}" class="btn btn-danger">
-                                    <i class="fas fa-euro-sign"></i> Gestión de Comisiones
-                                </a>
+                    {{-- 3. SECCIÓN DE GESTIÓN --}}
+<div class="col-md-6 mb-3">
+    <div class="card h-100">
+        <div class="card-header bg-secondary text-white fw-bold">
+            <i class="fas fa-cogs"></i> Gestión y Reportes
+        </div>
+        <div class="card-body d-grid gap-2 align-content-center">
 
-                                {{-- Enlace al Listado Global de Reservas (Ruta nueva del AdminController) --}}
-                                <a href="{{ route('admin.reservations.list') }}" class="btn btn-dark">
-                                    <i class="fas fa-list"></i> Listado Global de Reservas
-                                </a>
+            {{-- Gestión de Hoteles + Comisiones (todo integrado en tabs) --}}
+            <a href="{{ route('admin.hoteles.index') }}" class="btn btn-primary">
+                <i class="fas fa-hotel"></i> Gestión de Hoteles y Comisiones
+            </a>
 
-                                {{-- Enlace a Mis Reservas (Reservas hechas por el admin) --}}
-                                <a href="{{ route('mis_reservas') }}" class="btn btn-secondary">
-                                    <i class="fas fa-user-clock"></i> Mis Reservas Creadas
-                                </a>
+            {{-- Enlace al Listado Global de Reservas --}}
+            <a href="{{ route('admin.reservations.list') }}" class="btn btn-dark">
+                <i class="fas fa-list"></i> Listado Global de Reservas
+            </a>
 
-                                {{-- Ajustes de cuenta / Perfil --}}
-                                <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-user-cog"></i> Ajustes de Cuenta
-                                </a>
+            {{-- Enlace a Mis Reservas --}}
+            <a href="{{ route('mis_reservas') }}" class="btn btn-secondary">
+                <i class="fas fa-user-clock"></i> Mis Reservas Creadas
+            </a>
 
-                                {{-- Enlace al Calendario --}}
-                                <a href="{{ route('calendar.index') }}" class="btn btn-success">
-                                    <i class="fas fa-calendar-alt"></i> Ver Calendario
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+            {{-- Ajustes de cuenta / Perfil --}}
+            <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-user-cog"></i> Ajustes de Cuenta
+            </a>
+
+            {{-- Enlace al Calendario --}}
+            <a href="{{ route('calendar.index') }}" class="btn btn-success">
+                <i class="fas fa-calendar-alt"></i> Ver Calendario
+            </a>
+
+            {{-- Enlace a Gestión de Vehículos --}}
+            <a href="{{ route('admin.vehiculos.index') }}" class="btn btn-warning">
+                <i class="fas fa-car"></i> Gestión de Vehículos
+            </a>
+
+        </div>
+    </div>
+</div>
                 </div> {{-- Fin Row --}}
 
             </div>
