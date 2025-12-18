@@ -110,9 +110,12 @@
                         </div>
                     @enderror
 
-                    <div class="alert alert-warning small mb-0">
-                        Reserva mínima con <strong>48h de antelación</strong>.
-                    </div>
+                   @if(!Auth::guard('admin')->check())
+    <div class="alert alert-warning small mb-0">
+        Reserva mínima con <strong>48h de antelación</strong>.
+        Fecha mínima: <strong>{{ \Carbon\Carbon::parse($minDate)->format('d/m/Y') }}</strong>
+    </div>
+@endif
                 </div>
 
                 {{-- IDA --}}
@@ -153,9 +156,8 @@
         <input type="date"
                class="form-control"
                id="fecha_llegada"
-               name="fecha_llegada"
-               value="{{ old('fecha_llegada') }}"
-               min="{{ Carbon\Carbon::parse($minDate)->format('Y-m-d') }}"
+                name="fecha_llegada"
+       min="{{ $minDate }}"
                required>
     </div>
 
@@ -203,80 +205,100 @@
 
                 {{-- VUELTA --}}
                 <div class="form-section">
-                    <div class="section-title">VUELTA · Hotel → Aeropuerto</div>
+    <div class="section-title">VUELTA · Hotel → Aeropuerto</div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="origen_vuelo_salida" class="form-label">Aeropuerto de Destino</label>
-                            <input type="text"
-                                   class="form-control"
-                                   id="origen_vuelo_salida"
-                                   name="origen_vuelo_salida"
-                                   placeholder="Ej: Barcelona - El Prat (BCN)"
-                                   value="{{ old('origen_vuelo_salida') }}"
-                                   required>
-                        </div>
+    <div class="row">
+        {{-- Aeropuerto destino --}}
+        <div class="col-md-6 mb-3">
+            <label for="origen_vuelo_salida" class="form-label">Aeropuerto de Destino</label>
+            <input type="text"
+                   class="form-control"
+                   id="origen_vuelo_salida"
+                   name="origen_vuelo_salida"
+                   placeholder="Ej: Barcelona - El Prat (BCN)"
+                   value="{{ old('origen_vuelo_salida') }}"
+                   required>
+        </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="fecha_vuelo_salida" class="form-label">Día de Salida</label>
-                            <input type="date"
-                                   class="form-control"
-                                   id="fecha_vuelo_salida"
-                                   name="fecha_vuelo_salida"
-                                   value="{{ old('fecha_vuelo_salida') }}"
-                                   min="{{ Carbon\Carbon::parse($minDate)->format('Y-m-d') }}"
-                                   required>
-                        </div>
+        {{-- Fecha salida --}}
+        <div class="col-md-6 mb-3">
+            <label for="fecha_vuelo_salida" class="form-label">Día de Salida</label>
+            <input type="date"
+                   class="form-control"
+                   id="fecha_vuelo_salida"
+                   name="fecha_vuelo_salida"
+       min="{{ $minDate }}"
+                   required>
+        </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="hora_vuelo_salida" class="form-label">Hora del Vuelo</label>
-                            <input type="time"
-                                   class="form-control"
-                                   id="hora_vuelo_salida"
-                                   name="hora_vuelo_salida"
-                                   required>
-                        </div>
+        {{-- Hora vuelo --}}
+        <div class="col-md-6 mb-3">
+            <label for="hora_vuelo_salida" class="form-label">Hora del Vuelo</label>
+            <input type="time"
+                   class="form-control"
+                   id="hora_vuelo_salida"
+                   name="hora_vuelo_salida"
+                   required>
+        </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="hora_recogida_vuelta" class="form-label">Hora de Recogida</label>
-                            <input type="time"
-                                   class="form-control @error('hora_recogida_vuelta') is-invalid @enderror"
-                                   id="hora_recogida_vuelta"
-                                   name="hora_recogida_vuelta"
-                                   value="{{ old('hora_recogida_vuelta') }}"
-                                   required>
-                            <small class="text-muted">Recomendado: 3–4 horas antes del vuelo.</small>
-                            @error('hora_recogida_vuelta')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+        {{-- Número vuelo --}}
+        <div class="col-md-6 mb-3">
+            <label for="num_vuelo_salida" class="form-label">Número de Vuelo</label>
+            <input type="text"
+                   class="form-control @error('num_vuelo_salida') is-invalid @enderror"
+                   id="num_vuelo_salida"
+                   name="num_vuelo_salida"
+                   placeholder="Ej: VY6240"
+                   value="{{ old('num_vuelo_salida') }}"
+                   required>
+            @error('num_vuelo_salida')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-                    {{-- HOTEL RECOGIDA --}}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="id_hotel_recogida" class="form-label">Hotel de Recogida</label>
+        {{-- HOTEL RECOGIDA (izquierda) --}}
+        <div class="col-md-6 mb-3">
+            <label for="id_hotel_recogida" class="form-label">Hotel de Recogida</label>
 
-                            @if(Auth::guard('corporate')->check())
-                                <input type="text" class="form-control bg-light"
-                                       value="{{ $hotels->first()->nombre }}" readonly>
-                                <input type="hidden" name="id_hotel_recogida"
-                                       value="{{ $hotels->first()->id_hotel }}">
-                            @else
-                                <input type="text"
-       class="form-control bg-light fst-italic text-muted"
-       id="hotel_recogida_nombre"
-       value="Será el mismo que el de destino"
-       readonly>
+            @if(Auth::guard('corporate')->check())
+                <input type="text"
+                       class="form-control bg-light"
+                       value="{{ $hotels->first()->nombre }}"
+                       readonly>
+                <input type="hidden"
+                       name="id_hotel_recogida"
+                       value="{{ $hotels->first()->id_hotel }}">
+            @else
+                <input type="text"
+                       class="form-control bg-light fst-italic text-muted"
+                       id="hotel_recogida_nombre"
+                       value="Será el mismo que el de destino"
+                       readonly>
+                <input type="hidden"
+                       name="id_hotel_recogida"
+                       id="id_hotel_recogida">
+            @endif
+        </div>
 
-<input type="hidden" name="id_hotel_recogida" id="id_hotel_recogida">
-
-                            @endif
-                        </div>
-                    </div>
-                </div>
+        {{-- HORA RECOGIDA (derecha) --}}
+        <div class="col-md-6 mb-3">
+            <label for="hora_recogida_vuelta" class="form-label">Hora de Recogida en Hotel</label>
+            <input type="time"
+                   class="form-control @error('hora_recogida_vuelta') is-invalid @enderror"
+                   id="hora_recogida_vuelta"
+                   name="hora_recogida_vuelta"
+                   value="{{ old('hora_recogida_vuelta') }}"
+                   required>
+            <small class="text-muted">Recomendado: 3–4 horas antes del vuelo.</small>
+            @error('hora_recogida_vuelta')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+</div>
 
                 {{-- VEHÍCULO Y PASAJEROS --}}
+                
                 <div class="form-section">
                     <div class="section-title">Vehículo y Pasajeros</div>
 
@@ -289,7 +311,7 @@
                             <option value="">-- Seleccione un vehículo --</option>
                             @foreach($vehiculos as $vehiculo)
                                 <option value="{{ $vehiculo->id_vehiculo }}">
-                                    {{ $vehiculo->descripcion }} — {{ $vehiculo->Precio }} €
+                                    {{ $vehiculo->descripcion }} — {{ $vehiculo->precio }} €
                                 </option>
                             @endforeach
                         </select>
@@ -379,4 +401,69 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fechaIda = document.getElementById('fecha_llegada');
+    const fechaVuelta = document.getElementById('fecha_vuelo_salida');
+
+    if (!fechaIda || !fechaVuelta) return;
+
+    function syncFechaVuelta() {
+        const idaValue = fechaIda.value;
+
+        if (!idaValue) return;
+
+        // La vuelta NO puede ser anterior a la ida
+        fechaVuelta.min = idaValue;
+
+        // Si ya había una fecha de vuelta anterior → resetear
+        if (fechaVuelta.value && fechaVuelta.value < idaValue) {
+            fechaVuelta.value = idaValue;
+        }
+    }
+
+    // Al cambiar la IDA
+    fechaIda.addEventListener('change', syncFechaVuelta);
+
+    // Al cargar la página (por si hay old())
+    syncFechaVuelta();
+});
+</script>
+
+@if(!Auth::guard('corporate')->check())
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const destinoSelect = document.getElementById('id_hotel_destino');
+    const recogidaInput = document.getElementById('hotel_recogida_nombre');
+    const recogidaHidden = document.getElementById('id_hotel_recogida');
+
+    if (!destinoSelect || !recogidaInput || !recogidaHidden) return;
+
+    function syncHotelRecogida() {
+        const selectedOption = destinoSelect.options[destinoSelect.selectedIndex];
+
+        // Si no hay hotel seleccionado
+        if (!selectedOption || selectedOption.value === '') {
+            recogidaInput.value = 'Será el mismo que el de destino';
+            recogidaInput.classList.add('fst-italic', 'text-muted');
+            recogidaHidden.value = '';
+            return;
+        }
+
+        // Hotel seleccionado → reflejar nombre real
+        recogidaInput.value = selectedOption.text;
+        recogidaInput.classList.remove('fst-italic', 'text-muted');
+        recogidaHidden.value = selectedOption.value;
+    }
+
+    // Inicializar al cargar (por si hay old())
+    syncHotelRecogida();
+
+    // Escuchar cambios
+    destinoSelect.addEventListener('change', syncHotelRecogida);
+});
+</script>
+@endif
+
 @endsection

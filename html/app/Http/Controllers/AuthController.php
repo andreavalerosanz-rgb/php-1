@@ -45,6 +45,17 @@ class AuthController extends Controller
     $password = $credentials['password'];
 
     // ================================================================
+    // 0) COMPROBAR SI ES HOTEL INACTIVO (ANTES DE LOGIN)
+    // ================================================================
+    $hotel = Hotel::where('email_hotel', $email)->first();
+
+    if ($hotel && $hotel->activo == 0) {
+        throw ValidationException::withMessages([
+            'email' => 'Su hotel está inhabilitado. Contacte con Isla Transfers.',
+        ]);
+    }
+
+    // ================================================================
     // 1) LOGIN VIAJERO 
     // ================================================================
     $viajero = Viajero::where('email_viajero', $email)->first();
@@ -62,7 +73,6 @@ class AuthController extends Controller
             'email' => __('Contraseña incorrecta'),
         ]);
     }
-
 
     // ================================================================
     // 2) LOGIN HOTEL / CORPORATE 
@@ -83,7 +93,6 @@ class AuthController extends Controller
         ]);
     }
 
-
     // ================================================================
     // 3) LOGIN ADMIN 
     // ================================================================
@@ -102,7 +111,6 @@ class AuthController extends Controller
             'email' => __('Contraseña incorrecta'),
         ]);
     }
-
 
     // ================================================================
     // 4) EMAIL NO EXISTE EN NINGUNA TABLA

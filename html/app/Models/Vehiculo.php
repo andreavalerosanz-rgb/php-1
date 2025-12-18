@@ -17,16 +17,26 @@ class Vehiculo extends Model
         'descripcion',
         'email_conductor',
         'password',
+        'activo',
+        'precio',
     ];
 
-    public function getDescripcionAttribute() //Función para acceder al atributo descripción sin tilde
-    {
-        return $this->attributes['descripcion'] ?? null;
-    }
+    protected $appends = ['precio_final'];
 
     public function reservas()
-{
-    return $this->hasMany(\App\Models\Reserva::class, 'id_vehiculo', 'id_vehiculo');
-}
+    {
+        return $this->hasMany(\App\Models\Reserva::class, 'id_vehiculo', 'id_vehiculo');
+    }
 
+    /**
+     * Precio final del vehículo
+     * - Si viene de join con transfer_precios → usar Precio
+     * - Si no → usar precio base del vehículo
+     */
+    public function getPrecioFinalAttribute()
+    {
+        return isset($this->Precio)
+            ? (float) $this->Precio
+            : (float) $this->precio;
+    }
 }

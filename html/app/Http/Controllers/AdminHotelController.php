@@ -6,81 +6,125 @@ use Illuminate\Http\Request;
 use App\Models\Hotel;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Models\Reserva;
 
 class AdminHotelController extends Controller
 {
     /**
      * Mostrar listado de hoteles corporativos + formulario
      */
-   public function index()
-{
-    $hoteles = Hotel::orderBy('nombre')->get();
-    $zonas = \DB::table('transfer_zonas')->get();
+    public function index()
+    {
+        Reserva::sincronizarReservasFinalizadas();
+        
+        $hoteles = Hotel::orderBy('nombre')->get();
+        $zonas   = DB::table('transfer_zonas')->get();
 
-    $month = request('month', now()->month);
-    $year  = request('year', now()->year);
-    $hotelFilter = request('hotel_id');
+        // Filtros (permiten 'all')
+        $month = request('month', now()->month);
+        $year  = request('year', now()->year);
+        $hotelFilter = request('hotel_id');
 
-    $commissionRaw = \App\Models\Reserva::selectRaw("
-            id_hotel,
-            COUNT(*) as total_reservas,
-            SUM(precio_total) as total_ingresos,
-            SUM(comision_ganada) as total_comision
-        ")
-        ->where(function($q) use ($month, $year) {
-            // IDA
-            $q->whereYear('fecha_entrada', $year)
-              ->whereMonth('fecha_entrada', $month);
-        })
-        ->orWhere(function($q) use ($month, $year) {
-            // VUELTA
-            $q->whereYear('fecha_vuelo_salida', $year)
-              ->whereMonth('fecha_vuelo_salida', $month);
-        })
-        ->groupBy('id_hotel')
-        ->get();
+        $filterMonth = $month !== 'all';
+        $filterYear  = $year  !== 'all';
 
-    $commissionReport = $commissionRaw->map(function ($item) {
-        $hotel = Hotel::find($item->id_hotel);
-        return [
-            'hotel_id'        => $item->id_hotel,
-            'nombre_hotel'    => $hotel ? $hotel->nombre : 'Hotel eliminado',
-            'total_reservas'  => $item->total_reservas,
-            'total_ingresos'  => $item->total_ingresos,
-            'total_comision'  => $item->total_comision
-        ];
-    });
+        /*
+        |--------------------------------------------------------------------------
+        | COMISIONES AGRUPADAS POR HOTEL
+        |--------------------------------------------------------------------------
+        */
+        $commissionRaw = Reserva::selectRaw("
+                id_hotel,
+                COUNT(*) as total_reservas,
+                SUM(precio_total) as total_ingresos,
+                SUM(comision_ganada) as total_comision
+            ")
+            ->when($filterMonth || $filterYear, function ($q) use ($month, $year, $filterMonth, $filterYear) {
+                $q->where(function ($q2) use ($month, $year, $filterMonth, $filterYear) {
 
-    $reservasDetalladas = collect();
+                    // IDA
+                    $q2->where(function ($q3) use ($month, $year, $filterMonth, $filterYear) {
+                        if ($filterYear) {
+                            $q3->whereYear('fecha_entrada', $year);
+                        }
+                        if ($filterMonth) {
+                            $q3->whereMonth('fecha_entrada', $month);
+                        }
+                    })
 
-    if ($hotelFilter) {
+                    // VUELTA
+                    ->orWhere(function ($q3) use ($month, $year, $filterMonth, $filterYear) {
+                        if ($filterYear) {
+                            $q3->whereYear('fecha_vuelo_salida', $year);
+                        }
+                        if ($filterMonth) {
+                            $q3->whereMonth('fecha_vuelo_salida', $month);
+                        }
+                    });
 
-        $reservasDetalladas = \App\Models\Reserva::with(['vehiculo'])
-            ->where('id_hotel', $hotelFilter)
-            ->where(function($q) use ($month, $year) {
-                // IDA
-                $q->whereYear('fecha_entrada', $year)
-                  ->whereMonth('fecha_entrada', $month);
+                });
             })
-            ->orWhere(function($q) use ($month, $year, $hotelFilter) {
-                // VUELTA
-                $q->where('id_hotel', $hotelFilter)
-                  ->whereYear('fecha_vuelo_salida', $year)
-                  ->whereMonth('fecha_vuelo_salida', $month);
-            })
+            ->groupBy('id_hotel')
             ->get();
-    }
 
-    return view('admin.gestionhoteles', compact(
-        'hoteles',
-        'zonas',
-        'commissionReport',
-        'reservasDetalladas',
-        'hotelFilter',
-        'month',
-        'year'
-    ));
-}
+        $commissionReport = $commissionRaw->map(function ($item) {
+            $hotel = Hotel::find($item->id_hotel);
+
+            return [
+                'hotel_id'       => $item->id_hotel,
+                'nombre_hotel'   => $hotel ? $hotel->nombre : 'Hotel eliminado',
+                'total_reservas' => $item->total_reservas,
+                'total_ingresos' => $item->total_ingresos,
+                'total_comision' => $item->total_comision,
+            ];
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETALLE DE RESERVAS POR HOTEL
+        |--------------------------------------------------------------------------
+        */
+        $reservasDetalladas = collect();
+
+        if ($hotelFilter) {
+            $reservasDetalladas = Reserva::with('vehiculo')
+                ->where('id_hotel', $hotelFilter)
+                ->when($filterMonth || $filterYear, function ($q) use ($month, $year, $filterMonth, $filterYear) {
+                    $q->where(function ($q2) use ($month, $year, $filterMonth, $filterYear) {
+
+                        $q2->where(function ($q3) use ($month, $year, $filterMonth, $filterYear) {
+                            if ($filterYear) {
+                                $q3->whereYear('fecha_entrada', $year);
+                            }
+                            if ($filterMonth) {
+                                $q3->whereMonth('fecha_entrada', $month);
+                            }
+                        })
+
+                        ->orWhere(function ($q3) use ($month, $year, $filterMonth, $filterYear) {
+                            if ($filterYear) {
+                                $q3->whereYear('fecha_vuelo_salida', $year);
+                            }
+                            if ($filterMonth) {
+                                $q3->whereMonth('fecha_vuelo_salida', $month);
+                            }
+                        });
+
+                    });
+                })
+                ->get();
+        }
+
+        return view('admin.gestionhoteles', compact(
+            'hoteles',
+            'zonas',
+            'commissionReport',
+            'reservasDetalladas',
+            'hotelFilter',
+            'month',
+            'year'
+        ));
+    }
 
     /**
      * Mostrar formulario de creación (usa la misma vista)
@@ -88,7 +132,7 @@ class AdminHotelController extends Controller
     public function create()
     {
         $hoteles = Hotel::orderBy('nombre')->paginate(15);
-        $zonas = DB::table('transfer_zonas')->get(); // ← CARGA ZONAS
+        $zonas = DB::table('transfer_zonas')->get();
 
         return view('admin.gestionhoteles', compact('hoteles', 'zonas'));
     }
@@ -98,13 +142,13 @@ class AdminHotelController extends Controller
      */
     public function store(Request $request)
     {
-       $request->validate([
-    'nombre' => 'required|string|max:255',
-    'email_hotel' => 'required|email|unique:transfer_hoteles,email_hotel',
-    'Comision' => 'required|numeric|min:0|max:100',
-    'id_zona' => 'required|integer|exists:transfer_zonas,id_zona',
-    'password' => 'required|min:6|confirmed',
-]);
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'email_hotel' => 'required|email|unique:transfer_hoteles,email_hotel',
+            'Comision' => 'required|numeric|min:0|max:100',
+            'id_zona' => 'required|integer|exists:transfer_zonas,id_zona',
+            'password' => 'required|min:6|confirmed',
+        ]);
 
         Hotel::create([
             'nombre' => $request->nombre,
@@ -120,21 +164,20 @@ class AdminHotelController extends Controller
     }
 
     public function disable($id)
-{
-    $hotel = Hotel::findOrFail($id);
-    $hotel->activo = 0;
-    $hotel->save();
+    {
+        $hotel = Hotel::findOrFail($id);
+        $hotel->activo = 0;
+        $hotel->save();
 
-    return back()->with('status', 'Hotel inhabilitado correctamente.');
-}
+        return back()->with('status', 'Hotel inhabilitado correctamente.');
+    }
 
-public function enable($id)
-{
-    $hotel = Hotel::findOrFail($id);
-    $hotel->activo = 1;
-    $hotel->save();
+    public function enable($id)
+    {
+        $hotel = Hotel::findOrFail($id);
+        $hotel->activo = 1;
+        $hotel->save();
 
-    return back()->with('status', 'Hotel habilitado correctamente.');
-}
-
+        return back()->with('status', 'Hotel habilitado correctamente.');
+    }
 }

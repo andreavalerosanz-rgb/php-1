@@ -165,10 +165,13 @@
 
             <form method="POST" action="{{ route('register') }}">
                 @csrf
+
+                {{-- FORZAR ROL VIAJERO --}}
+                <input type="hidden" name="role" value="viajero">
                 
                 {{-- 1. Selector de Rol (Visual Cards with SVGs) --}}
                 <div class="mb-3 text-center">
-                    <label class="form-label d-block mb-3 text-muted">¿Cómo vas a usar la plataforma?</label>
+                    <label class="form-label d-block mb-3 text-muted">Tipo de cuenta</label>
                     <div class="role-selector-wrapper">
                         <div class="role-card">
                             <input type="radio" name="role" id="roleViajero" value="viajero" 
@@ -185,7 +188,7 @@
                             </label>
                         </div>
                         
-                        <div class="role-card">
+                        <div class="role-card d-none">
                             <input type="radio" name="role" id="roleHotel" value="hotel" 
                                 {{ old('role') == 'hotel' ? 'checked' : '' }}>
                             <label for="roleHotel">

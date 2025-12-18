@@ -8,7 +8,7 @@
         background: radial-gradient(circle at 50% -20%, #e0f2f1 0%, #f0fdfa 100%);
         min-height: 100vh;
         padding: 2rem 1.5rem;
-        border-radius: 1rem; 
+        border-radius: 1rem;
     }
 
 
@@ -40,7 +40,7 @@
     .panel-title {
         font-weight: 700;
         font-size: 0.95rem;
-        color: #0f766e; 
+        color: #0f766e;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin: 0;
@@ -62,7 +62,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .welcome-banner::after {
         content: "";
         position: absolute;
@@ -101,7 +101,7 @@
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 1rem;
     }
-    
+
     .action-btn {
         display: flex;
         flex-direction: column;
@@ -140,7 +140,7 @@
     }
     .create-res-btn:hover {
         border-color: #facc6b;
-        background: #fffbeb; 
+        background: #fffbeb;
         transform: translateX(4px);
     }
     .create-res-icon {
@@ -154,7 +154,7 @@
 </style>
 
 <div class="dashboard-container">
-    
+
     {{-- 1. WELCOME HERO --}}
     <div class="welcome-banner">
         <div class="d-flex justify-content-between align-items-end">
@@ -224,7 +224,7 @@
 
     {{-- 3. MAIN CONTENT ROW --}}
     <div class="row g-4 mb-5">
-        
+
         {{-- LEFT: ZONES ANALYSIS --}}
         <div class="col-lg-7">
             <div class="glass-panel">
@@ -243,7 +243,7 @@
                         </ul>
                     </div>
                 </div>
-                
+
                 <div class="panel-body">
                     <div class="row align-items-center">
                         <div class="col-md-7">
@@ -290,7 +290,7 @@
                 </div>
                 <div class="panel-body">
                     <p class="small text-muted mb-4">Selecciona el tipo de trayecto para crear una reserva en nombre de un cliente:</p>
-                    
+
                     {{-- Button 1 --}}
                     <form method="POST" action="{{ route('transfer.select-type.post') }}">
                         @csrf <input type="hidden" name="reservation_type" value="airport_to_hotel">
@@ -347,7 +347,7 @@
         </div>
         <div class="panel-body">
             <div class="action-grid">
-                
+
                 <a href="{{ route('admin.hoteles.index') }}" class="action-btn">
                     {{-- Icon: Office Building --}}
                     <svg class="text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
@@ -378,11 +378,7 @@
                     <span class="fw-bold small">Vehículos</span>
                 </a>
 
-                 <a href="{{ route('profile.edit') }}" class="action-btn">
-                    {{-- Icon: Cog --}}
-                    <svg class="text-secondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    <span class="fw-bold small">Ajustes</span>
-                </a>
+                 
 
             </div>
         </div>
@@ -396,7 +392,7 @@
         const ctx = document.getElementById('chartZonas');
         if(ctx) {
             new Chart(ctx, {
-                type: 'doughnut', 
+                type: 'doughnut',
                 data: {
                     labels: {!! json_encode($zonas->pluck('zona')) !!},
                     datasets: [{
@@ -405,14 +401,14 @@
                             '#0f9f9a', '#facc6b', '#3b82f6', '#ef4444',
                             '#8b5cf6', '#10b981', '#f59e0b', '#6b7280'
                         ],
-                        borderWidth: 0, 
+                        borderWidth: 0,
                         hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '65%', 
+                    cutout: '65%',
                     plugins: {
                         legend: {
                             position: 'right',

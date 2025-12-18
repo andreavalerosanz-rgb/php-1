@@ -90,6 +90,67 @@
         background-color: #f0fdfa;
         color: #0f766e;
     }
+    .glass-panel {
+    overflow-x: hidden;
+}
+.custom-table tbody tr.reserva-confirmada td {
+    background-color: #eff6ff !important; /* azul */
+}
+
+.custom-table tbody tr.reserva-finalizada td {
+    background-color: #f0fdf4 !important; /* verde */
+}
+
+.custom-table tbody tr.reserva-anulada td {
+    background-color: #fef2f2 !important; /* rojo */
+}
+
+/* Hover respetando estado */
+.custom-table tbody tr.reserva-confirmada:hover td {
+    background-color: #dbeafe !important;
+}
+
+.custom-table tbody tr.reserva-finalizada:hover td {
+    background-color: #dcfce7 !important;
+}
+
+.custom-table tbody tr.reserva-anulada:hover td {
+    background-color: #fee2e2 !important;
+}
+
+.legend {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+}
+
+.legend-confirmada {
+    background-color: #3b82f6; /* azul */
+}
+
+.legend-finalizada {
+    background-color: #22c55e; /* verde */
+}
+
+.legend-anulada {
+    background-color: #ef4444; /* rojo */
+}
 </style>
 
 <div class="dashboard-container">
@@ -99,14 +160,105 @@
             {{-- Header --}}
             <div class="panel-header-brand">
                 <div class="d-flex align-items-center gap-2">
-                    {{-- Icon: Clipboard --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+                    </svg>
                     <h5 class="mb-0 fw-bold">Listado General de Reservas</h5>
                 </div>
                 <div class="badge bg-white text-teal bg-opacity-90 shadow-sm text-dark">
                     Total: {{ $reservas->total() }}
                 </div>
             </div>
+
+            {{-- ========================= --}}
+            {{-- FILTROS EN VISTA --}}
+            {{-- ========================= --}}
+            <div class="p-3 border-bottom">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-teal">Estado</label>
+                        <select name="estado" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="confirmada" {{ request('estado')=='confirmada' ? 'selected' : '' }}>Confirmada</option>
+<option value="finalizada" {{ request('estado')=='finalizada' ? 'selected' : '' }}>Finalizada</option>
+<option value="anulada" {{ request('estado')=='anulada' ? 'selected' : '' }}>Anulada</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-teal">Desde</label>
+                        <input
+    type="date"
+    id="fecha_desde"
+    name="fecha_desde"
+    class="form-control"
+    value="{{ request('fecha_desde') }}"
+>
+                    </div>
+
+                    <div class="col-md-3">
+    <label class="form-label fw-semibold text-teal">Hasta</label>
+    <input
+    type="date"
+    id="fecha_hasta"
+    name="fecha_hasta"
+    class="form-control"
+    value="{{ request('fecha_hasta') }}"
+>
+</div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-teal w-100">Filtrar</button>
+                    </div>
+                </form>
+                {{-- LEYENDA ESTADOS --}}
+<div class="px-3 pt-3">
+    <div class="legend">
+        <div class="legend-item">
+            <span class="legend-color legend-confirmada"></span>
+            Confirmada
+        </div>
+        <div class="legend-item">
+            <span class="legend-color legend-finalizada"></span>
+            Finalizada
+        </div>
+        <div class="legend-item">
+            <span class="legend-color legend-anulada"></span>
+            Anulada
+        </div>
+    </div>
+</div>
+
+            </div>
+
+            {{-- ========================= --}}
+            {{-- ORDEN + FILTRO --}}
+            {{-- ========================= --}}
+            @php
+                $reservasOrdenadas = $reservas->getCollection()->sortBy(function ($reserva) {
+                    return $reserva->fechaLimite();
+                });
+
+                $reservasFiltradas = $reservasOrdenadas->filter(function ($reserva) {
+                    if (request('estado') && $reserva->estado !== request('estado')) {
+                        return false;
+                    }
+
+                    $fecha = optional($reserva->fechaLimite())->format('Y-m-d');
+
+                    if (request('fecha_desde') && $fecha < request('fecha_desde')) {
+                        return false;
+                    }
+
+                    if (request('fecha_hasta') && $fecha > request('fecha_hasta')) {
+                        return false;
+                    }
+
+                    return true;
+                });
+            @endphp
 
             {{-- Table --}}
             <div class="table-responsive">
@@ -126,45 +278,55 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($reservas as $reserva)
-                            <tr>
-                                <td>
-                                    <span class="loc-code">{{ $reserva->localizador }}</span>
-                                </td>
+                        @foreach($reservasFiltradas as $reserva)
+                             <tr class="
+        @if($reserva->estado === 'confirmada')
+            reserva-confirmada
+        @elseif($reserva->estado === 'finalizada')
+            reserva-finalizada
+        @elseif($reserva->estado === 'anulada')
+            reserva-anulada
+        @endif
+    ">
+                                <td><span class="loc-code">{{ $reserva->localizador }}</span></td>
+
                                 <td>
                                     <span class="badge bg-light text-secondary border fw-normal">
                                         {{ $reserva->tipo_traslado_nombre }}
                                     </span>
                                 </td>
+
+                                <td>{{ $reserva->vehiculo->descripcion ?? '-' }}</td>
+
+                                <td class="text-teal">{{ $reserva->hotel->nombre ?? 'N/A' }}</td>
+
                                 <td>
-                                    <div class="d-flex align-items-center gap-1 text-muted">
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        {{ $reserva->vehiculo->descripcion ?? '-' }}
-                                    </div>
+                                    {{ $reserva->zona->descripcion
+                                        ?? $reserva->hotel->zona->descripcion
+                                        ?? 'N/A' }}
                                 </td>
-                                <td class="text-teal">
-                                    {{ $reserva->hotel->nombre ?? 'N/A' }}
-                                </td>
-                                <td>
-                                    {{ $reserva->zona->descripcion ?? 'N/A' }}
-                                </td>
+
                                 <td>
                                     <div class="d-flex flex-column" style="line-height:1.2">
-                                        <span>{{ $reserva->fecha_entrada ?? 'N/A' }}</span>
-                                        <small class="text-muted">{{ $reserva->hora_entrada }}</small>
+                                        <span>{{ optional($reserva->fechaLimite())->format('Y-m-d') ?? 'N/A' }}</span>
                                     </div>
                                 </td>
+
                                 <td class="text-center">
-                                    <span class="badge bg-white text-dark border">{{ $reserva->num_viajeros }}</span>
+                                    <span class="badge bg-white text-dark border">
+                                        {{ $reserva->num_viajeros }}
+                                    </span>
                                 </td>
+
                                 <td class="text-end text-teal">
-                                    <span class="text-teal">{{ number_format($reserva->precio_total, 2) }} €</span>
+                                    {{ number_format($reserva->precio_total, 2) }} €
                                 </td>
+
                                 <td class="text-end text-gold">
-                                    <span class="text-gold">+{{ number_format($reserva->comision_ganada, 2) }} €</span>
+                                    +{{ number_format($reserva->comision_ganada, 2) }} €
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{ route('admin.reserva.detalle', $reserva->id_reserva) }}" 
+                                    <a href="{{ route('admin.reserva.detalle', $reserva->id_reserva) }}"
                                        class="btn btn-sm btn-light text-teal fw-bold border">
                                         Ver Detalle
                                     </a>
@@ -182,4 +344,34 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const desde = document.getElementById('fecha_desde');
+    const hasta = document.getElementById('fecha_hasta');
+
+    if (!desde || !hasta) return;
+
+    function syncFechas() {
+        if (desde.value) {
+            // Bloquear fechas anteriores en "hasta"
+            hasta.min = desde.value;
+
+            // Si la fecha hasta es anterior, la borramos
+            if (hasta.value && hasta.value < desde.value) {
+                hasta.value = '';
+            }
+        } else {
+            hasta.removeAttribute('min');
+        }
+    }
+
+    // Al cambiar "desde"
+    desde.addEventListener('change', syncFechas);
+
+    // Al cargar la página (caso filtros activos)
+    syncFechas();
+});
+</script>
+
 @endsection

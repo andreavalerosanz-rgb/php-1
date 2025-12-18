@@ -73,8 +73,8 @@ class ProfileController extends Controller
                 $emailField = 'email_viajero';
         }
 
-        // Validación
-        $request->validate([
+        // Base de validación (común)
+        $rules = [
             'nombre'   => ['required', 'string', 'max:255'],
             'email'    => [
                 'required',
@@ -82,14 +82,38 @@ class ProfileController extends Controller
                 "unique:$table,$emailField," . $user->{$idColumn} . ",$idColumn",
             ],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
-        ]);
+        ];
 
-        // Actualización de datos comunes
-        $user->nombre        = $request->input('nombre');
-        $user->{$emailField} = $request->input('email');
+        // Extra SOLO para viajero (web)
+        if ($guard === 'web') {
+            $rules = array_merge($rules, [
+                'apellido1'     => ['nullable', 'string', 'max:255'],
+                'apellido2'     => ['nullable', 'string', 'max:255'],
+                'direccion'     => ['nullable', 'string', 'max:255'],
+                'codigoPostal'  => ['nullable', 'string', 'max:20'],
+                'ciudad'        => ['nullable', 'string', 'max:255'],
+                'pais'          => ['nullable', 'string', 'max:255'],
+            ]);
+        }
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->input('password'));
+        $validated = $request->validate($rules);
+
+        // Actualización común
+        $user->nombre        = $validated['nombre'];
+        $user->{$emailField} = $validated['email'];
+
+        // Actualización extra (viajero)
+        if ($guard === 'web') {
+            $user->apellido1    = $validated['apellido1']    ?? $user->apellido1;
+            $user->apellido2    = $validated['apellido2']    ?? $user->apellido2;
+            $user->direccion    = $validated['direccion']    ?? $user->direccion;
+            $user->codigoPostal = $validated['codigoPostal'] ?? $user->codigoPostal;
+            $user->ciudad       = $validated['ciudad']       ?? $user->ciudad;
+            $user->pais         = $validated['pais']         ?? $user->pais;
+        }
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
         }
 
         $user->save();

@@ -14,6 +14,7 @@ class AdminController extends Controller
      */
     public function listReservations(Request $request)
     {
+        Reserva::sincronizarReservasFinalizadas();
         // Obtener todas las reservas con sus hoteles relacionados para mostrar el destino
         $reservas = Reserva::with('hotel')->orderBy('fecha_reserva', 'desc')->paginate(15);
 
@@ -26,6 +27,7 @@ class AdminController extends Controller
      */
     public function showCommissions(Request $request)
     {
+        Reserva::sincronizarReservasFinalizadas();
         // 1. Obtener el mes y año actual (o del filtro)
         $month = $request->input('month', Carbon::now()->month);
         $year = $request->input('year', Carbon::now()->year);

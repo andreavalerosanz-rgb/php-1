@@ -29,22 +29,24 @@ class VehiculosController extends Controller
      * Guardar vehículo nuevo.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'descripcion'      => 'required|string|max:255',
-            'email_conductor'  => 'required|email|max:255|unique:transfer_vehiculos,email_conductor',
-            'password'         => 'required|string|max:255',
-        ]);
+{
+    $request->validate([
+        'descripcion'     => 'required|string|max:255',
+        'email_conductor' => 'required|email|max:255|unique:transfer_vehiculos,email_conductor',
+        'password'        => 'required|string|max:255',
+    ]);
 
-        Vehiculo::create([
-            'descripcion'     => $request->descripcion,
-            'email_conductor' => $request->email_conductor,
-            'password'        => $request->password, // Puedes encriptarlo si quieres
-        ]);
+    Vehiculo::create([
+        'descripcion'     => $request->descripcion,
+        'email_conductor' => $request->email_conductor,
+        'password'        => $request->password,
+        // 👇 NO precio → usa DEFAULT 50
+    ]);
 
-        return redirect()->route('admin.vehiculos.index')
-                         ->with('success', 'Vehículo creado correctamente.');
-    }
+    return redirect()
+        ->route('admin.vehiculos.index')
+        ->with('success', 'Vehículo creado correctamente.');
+}
 
     /**
      * Formulario de edición.
@@ -64,18 +66,19 @@ class VehiculosController extends Controller
         $vehiculo = Vehiculo::findOrFail($id);
 
         $request->validate([
-            'descripcion'      => 'required|string|max:255',
-            'email_conductor'  => 'required|email|max:255|unique:transfer_vehiculos,email_conductor,' 
-                                 . $vehiculo->id_vehiculo . ',id_vehiculo',
-            'password'         => 'required|string|max:255',
-        ]);
+    'descripcion'      => 'required|string|max:255',
+    'email_conductor'  => 'required|email|max:255|unique:transfer_vehiculos,email_conductor,' 
+                         . $vehiculo->id_vehiculo . ',id_vehiculo',
+    'password'         => 'required|string|max:255',
+    'precio'           => 'required|numeric|min:0',
+]);
 
-        $vehiculo->update([
-            'descripcion'     => $request->descripcion,
-            'email_conductor' => $request->email_conductor,
-            'password'        => $request->password,
-        ]);
-
+$vehiculo->update([
+    'descripcion'     => $request->descripcion,
+    'email_conductor' => $request->email_conductor,
+    'password'        => $request->password,
+    'precio'          => $request->precio,
+]);
         return redirect()->route('admin.vehiculos.index')
                          ->with('success', 'Vehículo actualizado correctamente.');
     }

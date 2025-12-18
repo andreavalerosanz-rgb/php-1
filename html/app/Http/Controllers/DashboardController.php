@@ -12,6 +12,7 @@ class DashboardController extends Controller
 {
     public function admin()
     {
+        Reserva::sincronizarReservasFinalizadas();
         $usuariosTotales = Viajero::count();
 $hotelesTotales  = Hotel::count();
 $adminsTotales   = Admin::count();
@@ -52,6 +53,7 @@ $reservas = Reserva::all();
 
     public function hotel()
     {
+        Reserva::sincronizarReservasFinalizadas();
         $hotel = Auth::guard('corporate')->user();
 
         $reservas = Reserva::where('id_hotel', $hotel->id_hotel)->count();
@@ -65,6 +67,7 @@ $reservas = Reserva::all();
 
     public function user()
 {
+    Reserva::sincronizarReservasFinalizadas();
     $user = Auth::guard('web')->user();   
     $viajeroId = $user->id_viajero;               
 

@@ -16,36 +16,72 @@ class CorporateController extends Controller
      * Mostrar comisiones del hotel.
      */
     public function commissions(Request $request)
-    {
-        $user = Auth::guard('corporate')->user();
-        if (!$user) {
-            abort(403);
-        }
+{
+    Reserva::sincronizarReservasFinalizadas();
+    $user = Auth::guard('corporate')->user();
+    if (!$user) {
+        abort(403);
+    }
 
-        $month = $request->input('month', Carbon::now()->month);
-        $year  = $request->input('year', Carbon::now()->year);
+    $all   = $request->has('all');
+$month = $all ? null : $request->input('month', Carbon::now()->month);
+$year  = $request->input('year', Carbon::now()->year);
 
-        // Traemos todas las reservas del hotel logueado en el mes/año seleccionado
-        $reservas = Reserva::where('id_hotel', $user->id_hotel)
-                            ->whereYear('fecha_reserva', $year)
-                            ->whereMonth('fecha_reserva', $month)
-                            ->get();
 
-        // Calculamos ingresos y comisión según el porcentaje del hotel
-        $commissionReport = $reservas->map(function($reserva) use ($user) {
-            $comisionHotel = $reserva->precio_total * ($user->Comision / 100);
+    // 🔹 Reservas del hotel filtradas por FECHA DE TRASLADO
+    $query = Reserva::where('id_hotel', $user->id_hotel);
 
-            return [
-                'reserva_id'       => $reserva->id_reserva,
-                'localizador'      => $reserva->localizador,
-                'fecha_reserva'    => $reserva->fecha_reserva,
-                'precio_total'     => $reserva->precio_total,
-                'comision_hotel'   => $comisionHotel,
-            ];
+if (!$all) {
+    $query->where(function ($q) use ($month, $year) {
+
+        $q->where(function ($q2) use ($month, $year) {
+            $q2->where('id_tipo_reserva', 1)
+               ->whereYear('fecha_entrada', $year)
+               ->whereMonth('fecha_entrada', $month);
+        })
+        ->orWhere(function ($q2) use ($month, $year) {
+            $q2->where('id_tipo_reserva', 2)
+               ->whereYear('fecha_vuelo_salida', $year)
+               ->whereMonth('fecha_vuelo_salida', $month);
+        })
+        ->orWhere(function ($q2) use ($month, $year) {
+            $q2->where('id_tipo_reserva', 3)
+               ->whereYear('fecha_entrada', $year)
+               ->whereMonth('fecha_entrada', $month);
         });
 
-        $totalComision = $commissionReport->sum('comision_hotel');
+    });
+}
 
-        return view('corporate.comissions', compact('commissionReport', 'month', 'year', 'totalComision'));
-    }
+$reservas = $query->get();
+
+    // 🔹 Construimos el reporte
+    $commissionReport = $reservas->map(function ($reserva) use ($user) {
+
+        // Fecha REAL del traslado
+        $fechaTraslado = match ($reserva->id_tipo_reserva) {
+            1 => $reserva->fecha_entrada,
+            2 => $reserva->fecha_vuelo_salida,
+            3 => $reserva->fecha_entrada,
+            default => null,
+        };
+
+        return [
+            'reserva_id'     => $reserva->id_reserva,
+            'localizador'    => $reserva->localizador,
+            'fecha_traslado' => $fechaTraslado,
+            'precio_total'   => $reserva->precio_total,
+            'comision_hotel' => $reserva->comision_ganada,
+        ];
+    });
+
+    $totalComision = $commissionReport->sum('comision_hotel');
+
+    return view('corporate.comissions', compact(
+        'commissionReport',
+        'month',
+        'year',
+        'totalComision'
+    ));
+}
 }

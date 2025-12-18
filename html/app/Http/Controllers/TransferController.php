@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use App\Models\Reserva;
-use App\Models\Precio;
+use App\Models\Vehiculo;
 use App\Models\Hotel;
 use App\Models\Viajero;
 
@@ -42,22 +42,43 @@ class TransferController extends Controller
                 ->with('error', 'Tipo de reserva no válido.');
         }
 
-        $user    = Auth::user();
-        $minDate = Carbon::now()->addHours(48)->format('Y-m-d H:i');
-        $hotels  = Hotel::where('activo', 1)->get();
+        $user = Auth::user();
 
-        $vehiculos = collect();
-        if ($hotels->count() > 0) {
-            $vehiculos = Precio::where('transfer_precios.id_hotel', $hotels[0]->id_hotel)
-                ->join('transfer_vehiculos', 'transfer_precios.id_vehiculo', '=', 'transfer_vehiculos.id_vehiculo')
-                ->where('transfer_vehiculos.activo', 1)
-                ->select([
-                    'transfer_vehiculos.id_vehiculo',
-                    'transfer_vehiculos.descripcion',
-                    'transfer_precios.Precio'
-                ])
-                ->get();
-        }
+// Solo los usuarios tipo viajeros y hoteles tienen restricción 48h para reservar
+$isAdmin = Auth::guard('admin')->check();
+
+// Admin: hoy | Hotel/Viajero: +48h
+$minDate = $isAdmin
+    ? Carbon::today()->format('Y-m-d')
+    : Carbon::now()->addHours(48)->format('Y-m-d');
+
+
+$hotelLogado = null;
+
+if (Auth::guard('corporate')->check()) {
+    $hotelId = Auth::guard('corporate')->user()->id_hotel;
+
+    $hotelLogado = Hotel::where('activo', 1)
+        ->where('id_hotel', $hotelId)
+        ->first(); // 1 solo
+
+    // Para reutilizar el Blade si quieres seguir con $hotels
+    $hotels = collect();
+    if ($hotelLogado) {
+        $hotels = collect([$hotelLogado]);
+    }
+
+} else {
+    // Admin o viajero -> todos
+    $hotels = Hotel::where('activo', 1)
+        ->orderBy('nombre')   // IMPORTANTE: orden estable
+        ->get();
+}
+
+
+        $vehiculos = Vehiculo::where('activo', 1)
+    ->orderBy('descripcion')
+    ->get();
 
         $viajeros = collect();
         if (Auth::guard('admin')->check() || Auth::guard('corporate')->check()) {
@@ -75,7 +96,8 @@ class TransferController extends Controller
             'minDate',
             'hotels',
             'vehiculos',
-            'viajeros'
+            'viajeros',
+            'hotelLogado'
         ));
     }
 
@@ -98,7 +120,13 @@ class TransferController extends Controller
             $rules['id_viajero'] = 'required|exists:transfer_viajeros,id_viajero';
         }
 
-        $minDate = Carbon::now()->addHours(48)->format('Y-m-d');
+        $isAdmin = Auth::guard('admin')->check();
+
+// Admin: hoy | Hotel y Viajero: +48h
+$minDate = $isAdmin
+    ? Carbon::today()->format('Y-m-d')
+    : Carbon::now()->addHours(48)->format('Y-m-d');
+
 
         // 🔧 NORMALIZACIÓN round_trip (hotel recogida = destino)
         if (
@@ -113,41 +141,47 @@ class TransferController extends Controller
 
         // VALIDACIONES POR TIPO
         if ($request->reservation_type === 'airport_to_hotel') {
-            $rules += [
-                'aeropuerto_origen' => 'required|string',
-                'fecha_llegada'     => "required|date|after_or_equal:$minDate",
-                'hora_llegada'      => 'required',
-                'num_vuelo'         => 'required|string',
-                'id_hotel_destino'  => 'required|integer',
-            ];
-        }
+    $rules += [
+        'aeropuerto_origen' => 'required|string',
+        'fecha_llegada'     => "required|date|after_or_equal:$minDate",
+        'hora_llegada'      => 'required',
+        'num_vuelo'         => 'required|string',
+        'id_hotel_destino'  => 'required|integer',
+    ];
+}
+
 
         if ($request->reservation_type === 'hotel_to_airport') {
-            $rules += [
-                'origen_vuelo_salida' => 'required|string',
-                'fecha_vuelo_salida'  => "required|date|after_or_equal:$minDate",
-                'hora_vuelo_salida'   => 'required',
-                'num_vuelo_salida'    => 'required|string',
-                'id_hotel_recogida'   => 'required|integer',
-                'hora_recogida'       => 'required',
-            ];
-        }
+    $rules += [
+        'origen_vuelo_salida' => 'required|string',
+        'fecha_vuelo_salida'  => "required|date|after_or_equal:$minDate",
+        'hora_vuelo_salida'   => 'required',
+        'num_vuelo_salida'    => 'required|string',
+        'id_hotel_recogida'   => 'required|integer',
+        'hora_recogida'       => 'required',
+    ];
+}
+
+
 
         if ($request->reservation_type === 'round_trip') {
-            $rules += [
-                'origen_vuelo_entrada' => 'required|string',
-                'fecha_llegada'        => "required|date|after_or_equal:$minDate",
-                'hora_llegada'         => 'required',
-                'num_vuelo_ida'        => 'required|string',
-                'id_hotel_destino'     => 'required|integer',
+    $rules += [
+        'origen_vuelo_entrada' => 'required|string',
+        'fecha_llegada'        => "required|date|after_or_equal:$minDate",
+        'hora_llegada'         => 'required',
+        'num_vuelo_ida'        => 'required|string',
+        'id_hotel_destino'     => 'required|integer',
 
-                'origen_vuelo_salida'  => 'required|string',
-                'fecha_vuelo_salida'   => "required|date|after_or_equal:$minDate",
-                'hora_vuelo_salida'    => 'required',
-                'hora_recogida_vuelta' => 'required',
-                'id_hotel_recogida'    => 'required|integer',
-            ];
-        }
+        'origen_vuelo_salida'  => 'required|string',
+        'fecha_vuelo_salida'   => "required|date|after_or_equal:$minDate",
+        'hora_vuelo_salida'    => 'required',
+        'num_vuelo_salida'     => 'required|string',
+        'hora_recogida_vuelta' => 'required',
+        'id_hotel_recogida'    => 'required|integer',
+    ];
+}
+
+
 
         $request->validate($rules);
 
@@ -201,18 +235,28 @@ if (Auth::guard('admin')->check()) {
             ? $createdById
             : $idDestino;
 
-        // PRECIO
-        $precio = Precio::where('id_hotel', $idDestino)
-            ->where('id_vehiculo', $request->id_vehiculo)
-            ->first();
+        // =====================
+// PRECIO DEL VEHÍCULO
+// =====================
+$vehiculo = \App\Models\Vehiculo::findOrFail($request->id_vehiculo);
 
-        if (!$precio) {
-            throw ValidationException::withMessages([
-                'vehiculo' => 'No hay tarifa configurada para este hotel y vehículo.',
-            ]);
-        }
+$precioBase = $vehiculo->precio;
 
-        $precioFinal = $precio->Precio * ($type === 'round_trip' ? 2 : 1);
+// Ida y vuelta = doble trayecto
+$precioFinal = $precioBase * ($type === 'round_trip' ? 2 : 1);
+
+// =====================
+// COMISIÓN DEL HOTEL
+// =====================
+$hotel = \App\Models\Hotel::findOrFail($idDestino);
+
+// Comisión en porcentaje (ej: 10 = 10%)
+$porcentajeComision = $hotel->Comision ?? 0;
+
+$comisionGanada = round(
+    $precioFinal * ($porcentajeComision / 100),
+    2
+);
 
         // DATOS BASE
         $data = [
@@ -241,8 +285,8 @@ if (Auth::guard('admin')->check()) {
             'id_vehiculo'  => $request->id_vehiculo,
 
             'precio_total'       => $precioFinal,
-            'comision_ganada'    => round($precioFinal * 0.10, 2),
-            'comision_liquidada' => 0,
+'comision_ganada'    => $comisionGanada,
+'comision_liquidada' => 0,
 
             // Defaults
             'fecha_entrada'        => null,
